@@ -1,0 +1,36 @@
+server: #端口如果不配默认8080
+  port: 8099
+  servlet: #dispather
+#servlet的监听路径，默认为: /
+        context-path: /
+
+spring:
+  datasource:
+    driver-class-name: com.mysql.jdbc.Driver
+    url: jdbc:mysql://localhost:3306/secondhandmarket?useSSL=false&characterEncoding=utf8&serverTimezone=Asia/Shanghai
+    username: root
+    password: 123456cnm
+  mail:
+    host: smtp.office365.com
+    username: 6543x1@outlook.com
+    password: bugaoshuni
+    properties:
+      mail:
+        smtp:
+          auth: true
+        starttls:
+          enable: true
+          required: true
+    port: 587
+logging:
+  level:
+    root: info
+mybatis:
+  type-aliases-package: com.jessie.SHMarket.entity
+# 分页配置
+pagehelper:
+  helper-dialect: mysql
+  reasonable: true
+  support-methods-arguments: true
+  params: count=countSql
+

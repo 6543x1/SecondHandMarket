@@ -1,0 +1,9 @@
+{
+  "properties": [
+    {
+      "name": "theMap",
+      "type": "java.util.HashMap",
+      "description": "Description for GoodsController.theMap.",
+      "defaultValue": {"1":"haha"}
+  }
+] }

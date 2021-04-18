@@ -1,14 +1,18 @@
 package com.jessie.SHMarket.controller;
 
+import com.alibaba.fastjson.JSON;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.jessie.SHMarket.entity.Permission;
-import com.jessie.SHMarket.entity.Result;
-import com.jessie.SHMarket.entity.User;
+import com.jessie.SHMarket.entity.*;
 import com.jessie.SHMarket.service.MailService;
 import com.jessie.SHMarket.service.PermissionService;
+import com.jessie.SHMarket.service.UserIdentityService;
 import com.jessie.SHMarket.service.UserService;
 import com.jessie.SHMarket.service.impl.MailServiceImpl;
+import com.sun.org.apache.xpath.internal.functions.WrongNumberArgsException;
+import jdk.nashorn.internal.parser.JSONParser;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.configurationprocessor.json.JSONArray;
+import org.springframework.boot.configurationprocessor.json.JSONObject;
 import org.springframework.mail.javamail.JavaMailSenderImpl;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
@@ -21,20 +25,28 @@ import org.springframework.ui.ModelMap;
 import org.springframework.util.DigestUtils;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.bind.support.SessionStatus;
+import org.springframework.web.multipart.MultipartFile;
 
+import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 
+import java.io.File;
+import java.util.HashMap;
 import java.util.List;
+import java.util.UUID;
 
 import static com.jessie.SHMarket.service.impl.MailServiceImpl.getRandomString;
+import static com.jessie.SHMarket.service.impl.UserServiceImpl.testJWCHPost;
 
 @RestController
 @RequestMapping("/user")
 @SessionAttributes(value = {"username", "uid", "userPath", "resetCode", "mailAddr"}, types = {String.class, Integer.class, String.class, String.class, String.class})
 public class UserController
 {
+    @Resource(name = "theImgSuffix")
+    HashMap<Integer, String> theImgSuffix;
     @Autowired
     private ObjectMapper objectMapper;
     @Autowired
@@ -45,9 +57,12 @@ public class UserController
     private MailService mailService;
     @Autowired
     private PermissionService permissionService;
+    @Autowired
+    private UserIdentityService userIdentityService;
 
+    // nohup java -jar /usr/shmarket-0.0.1-SNAPSHOT.jar &
     @PostMapping(value = "/ResetPw", produces = "application/json;charset=UTF-8")
-    public String editPassword(String oldPassword,String newPassword) throws Exception
+    public String editPassword(String oldPassword, String newPassword) throws Exception
     {
         User thisUser = userService.getUser(getCurrentUsername());
         if (bCryptPasswordEncoder.matches(oldPassword, thisUser.getPassword()))
@@ -57,10 +72,53 @@ public class UserController
             return objectMapper.writeValueAsString(Result.success("EditSuccess"));
         } else
         {
-            return objectMapper.writeValueAsString(Result.error("WrongPassword",403));
+            return objectMapper.writeValueAsString(Result.error("WrongPassword", 403));
         }
     }
 
+    @PostMapping(value = "/upload", produces = "text/html;charset=UTF-8")
+    public String UploadImg(HttpServletRequest request, @RequestParam("upload") MultipartFile upload, ModelMap modelmap) throws Exception
+    {
+
+        System.out.println("上传头像");
+        int uid = (Integer) modelmap.get("uid");
+        String path = "/usr/tomcat/Img/" + modelmap.get("username");
+        System.out.println(path);
+        //如果文件重名，应该覆盖原文件吧（是否覆盖由前端决定）
+        //选的是war exploded 那么文件会在工程目录下
+        //否则在tomcat目录下
+
+        File file = new File(path);
+        if (!file.exists())
+        {
+            file.mkdirs();
+        }
+        try
+        {
+            String filename = upload.getOriginalFilename();
+            String suffix = filename.substring(filename.lastIndexOf(".") + 1);
+            if (!theImgSuffix.containsValue(suffix))
+            {
+                throw new Exception("?");
+            }
+            User user = new User();
+            user.setUid(uid);
+            user.setImg_path(path + File.pathSeparator + upload.getOriginalFilename());
+            upload.transferTo(new File(path, upload.getOriginalFilename()));
+            userService.saveImg(user);
+            System.out.println("头像保存成功，开始向数据库中更新用户数据");
+
+        } catch (NullPointerException e)
+        {
+            e.printStackTrace();
+            return objectMapper.writeValueAsString(Result.error("找不到文件的名字"));
+        } catch (Exception e)
+        {
+            e.printStackTrace();
+            return objectMapper.writeValueAsString(Result.error("未知错误"));
+        }
+        return objectMapper.writeValueAsString(Result.success("上传成功"));
+    }
 
 
     @PostMapping (value = "/Register", produces = "text/html;charset=UTF-8")
@@ -78,6 +136,7 @@ public class UserController
             System.out.println("用户名已存在，请重试");
             return objectMapper.writeValueAsString(Result.error("用户名已存在", 500));
         }
+        user.setStatus(100);
         user.setRole("user");
         user.setNickName(getRandomString());
         user.setPassword(bCryptPasswordEncoder.encode(user.getPassword()));//换用Bcrypt，自动加盐真香
@@ -88,29 +147,37 @@ public class UserController
     @RequestMapping(value = "/loginSuccess", produces = "text/plain;charset=UTF-8")
     public String isLogin(Model model) throws Exception
     {
-        String username=getCurrentUsername();
-        if(username==null) return objectMapper.writeValueAsString(Result.error("服务器内部错误",500));
-        model.addAttribute("username",username);
-        model.addAttribute("uid",userService.getUser(username).getUid());
-
-        System.out.println(username);
-        return objectMapper.writeValueAsString(Result.success("Success", username));
+        String username = getCurrentUsername();
+        if (username == null) return objectMapper.writeValueAsString(Result.error("服务器内部错误", 500));
+        model.addAttribute("username", username);
+        User user = userService.getUser(username);
+        user.setPassword("加密也不给你看");
+        model.addAttribute("uid", user.getUid());
+        String userInfo = objectMapper.writeValueAsString(user);
+        System.out.println(userInfo);
+        Result result = Result.success("loginSuccess", user);
+        return JSON.toJSONString(result);//jackson那个垃圾玩意老给我多出来\，还是阿里懂我
     }
+
+    @PostMapping(value = "/userInfo", produces = "text/plain;charset=UTF-8")
+    public String userInfo(Model model) throws Exception
+    {
+        String username = getCurrentUsername();
+        User user = userService.getUser(username);
+        return objectMapper.writeValueAsString(user);
+    }
+
     @RequestMapping(value = "/loginError", produces = "text/plain;charset=UTF-8")
     public String loginError(Model model) throws Exception
     {
-        String username=getCurrentUsername();
-        if(username==null) return objectMapper.writeValueAsString(Result.error("服务器没找到用户名",500));
-        if(userService.getUser(username).getStatus()>3){
-            return objectMapper.writeValueAsString(Result.error("因为发布太多违规内容被封号",403));
-        }
-
-        return objectMapper.writeValueAsString(Result.error("账号或密码不对", 400));
+        return objectMapper.writeValueAsString(Result.error("密码不匹配或是已被封号", 400));
     }
+
     //Spring Security获取当前用会话的户信息
-    public static String getCurrentUsername(){
-        String username="";
-        Authentication authentication= SecurityContextHolder.getContext().getAuthentication();
+    public static String getCurrentUsername()
+    {
+        String username = "";
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         Object principal=authentication.getPrincipal();
         if(principal==null){
             return null;
@@ -201,12 +268,36 @@ public class UserController
         }
         return objectMapper.writeValueAsString(res);
     }
-    @RequestMapping(value = "/noAccess",produces = "application/json;charset=UTF-8")
-    public String noAccess(SessionStatus status)throws Exception{
-        return objectMapper.writeValueAsString(Result.error("权限不足",403));
+
+    @RequestMapping(value = "/noAccess", produces = "application/json;charset=UTF-8")
+    public String noAccess(SessionStatus status) throws Exception
+    {
+        return objectMapper.writeValueAsString(Result.error("权限不足", 403));
     }
-    @RequestMapping(value = "/isLogin",produces = "application/json;charset=UTF-8")
-    public String loginIN(SessionStatus status)throws Exception{
-        return objectMapper.writeValueAsString(Result.error("是"+getCurrentUsername(),403));
+
+    @RequestMapping(value = "/isLogin", produces = "application/json;charset=UTF-8")
+    public String loginIN(SessionStatus status) throws Exception
+    {
+        return objectMapper.writeValueAsString(Result.error("是" + getCurrentUsername(), 403));
+    }
+
+    @PostMapping(value = "/confirmFzu", produces = "application/json;charset=UTF-8")
+    public String confirmFzu(String No, String password, ModelMap modelMap) throws Exception
+    {
+        int uid = (int) modelMap.get("uid");
+        if (userIdentityService.userIdentity(uid) != null)
+        {
+            return objectMapper.writeValueAsString(Result.error("该学号已经被认证"));
+        }
+        if (testJWCHPost(No, password))
+        {
+            UserIdentity userIdentity = new UserIdentity();
+            userIdentity.setUid(uid);
+            userIdentity.setNo(No);
+            userIdentity.setSchool("福州大学");
+            userIdentityService.saveIdentity(userIdentity);
+            return objectMapper.writeValueAsString(Result.success("认证成功"));
+        }
+        return objectMapper.writeValueAsString(Result.error("认证失败"));
     }
 }

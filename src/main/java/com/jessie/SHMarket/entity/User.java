@@ -9,6 +9,7 @@ public class User
     String nickName;
     int status;
     String role;
+    String img_path;
 
     @Override
     public String toString()
@@ -21,7 +22,18 @@ public class User
                 ", nickName='" + nickName + '\'' +
                 ", status=" + status +
                 ", role='" + role + '\'' +
+                ", img_path='" + img_path + '\'' +
                 '}';
+    }
+
+    public String getImg_path()
+    {
+        return img_path;
+    }
+
+    public void setImg_path(String img_path)
+    {
+        this.img_path = img_path;
     }
 
     public String getRole()

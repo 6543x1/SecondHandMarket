@@ -10,6 +10,8 @@ public interface UserService
 
     void saveUser(User user);
 
+    void saveImg(User user);
+
     List<User> findAllAccount();
 
     User getUser(String username);

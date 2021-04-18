@@ -21,6 +21,12 @@ public class GoodsServiceImpl implements GoodsService
     }
 
     @Override
+    public Goods getGoods(int gid)
+    {
+        return goodsDAO.getGoods(gid);
+    }
+
+    @Override
     public List<Goods> queryGoods()
     {
         return goodsDAO.queryGoods();
@@ -33,14 +39,20 @@ public class GoodsServiceImpl implements GoodsService
     }
 
     @Override
-    public void updateGoods(int status,int gid)
+    public void updateGoods(int status, int gid)
     {
-        goodsDAO.updateGoods(status,gid);
+        goodsDAO.updateGoods(status, gid);
     }
 
     @Override
     public void deleteGoods(int gid)
     {
         goodsDAO.deleteGoods(gid);
+    }
+
+    @Override
+    public List<Goods> search(String keyValue)
+    {
+        return goodsDAO.search(keyValue);
     }
 }

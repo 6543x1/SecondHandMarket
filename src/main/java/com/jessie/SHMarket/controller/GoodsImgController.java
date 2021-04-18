@@ -51,9 +51,8 @@ public class GoodsImgController
             return "请先登入";
         }
         System.out.println("通过gid文件上传开始...");
-        int uid=(Integer)modelmap.get("uid");
-
-        String path = "D:/SHMarket/"+modelmap.get("username");
+        int uid = (Integer) modelmap.get("uid");
+        String path = "/usr/tomcat/Img/" + modelmap.get("username");
         System.out.println(path);
         //如果文件重名，应该覆盖原文件吧（是否覆盖由前端决定）
         //选的是war exploded 那么文件会在工程目录下
@@ -113,7 +112,7 @@ public class GoodsImgController
             //获取页面输出流
             ServletOutputStream outputStream = response.getOutputStream();
             //读取文件
-            byte[] bytes = FileUtils.readFileToByteArray(new File(list.get(0).getPath() + list.get(0).getName()));
+            byte[] bytes = FileUtils.readFileToByteArray(new File(list.get(0).getPath() + File.pathSeparator + list.get(0).getName()));
             //向输出流写文件
             //写之前设置响应流以附件的形式打开返回值,这样可以保证前边打开文件出错时异常可以返回给前台
             response.setHeader("Content-Disposition", "attachment;filename=" + list.get(0).getName());

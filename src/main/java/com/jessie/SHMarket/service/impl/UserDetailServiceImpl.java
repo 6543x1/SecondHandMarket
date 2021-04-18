@@ -29,10 +29,12 @@ public class UserDetailServiceImpl implements UserDetailsService
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException
     {
         User user=userService.getUser(username);
-        if(user==null){
+        if (user == null)
+        {
             return null;//后续方法会自动抛出异常
         }
-        if(user.getStatus()>3){
+        if (user.getStatus() <= 0)
+        {
             return null;
         }
             //throw new UsernameNotFoundException("没找到用户");

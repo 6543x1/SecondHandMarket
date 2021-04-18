@@ -36,4 +36,10 @@ public class OrderServiceImpl implements OrderService
     {
         return orderDAO.getUserOrder(uid);
     }
+
+    @Override
+    public Order getOrder(int oid)
+    {
+        return orderDAO.getOrder(oid);
+    }
 }

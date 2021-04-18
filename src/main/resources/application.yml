@@ -4,6 +4,7 @@ server: #端口如果不配默认8080
 #servlet的监听路径，默认为: /
         context-path: /
 
+
 spring:
   datasource:
     driver-class-name: com.mysql.jdbc.Driver
@@ -22,6 +23,11 @@ spring:
           enable: true
           required: true
     port: 587
+  servlet:
+    multipart:
+      enabled: true #是否启用http上传处理
+      max-request-size: 100MB #最大请求文件的大小
+      max-file-size: 20MB #设置单个文件最大长度
 logging:
   level:
     root: info

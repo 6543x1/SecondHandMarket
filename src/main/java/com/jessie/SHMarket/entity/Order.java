@@ -9,7 +9,7 @@ public class Order {
 
   private int oid;
   private LocalDateTime generatedTime;
-  private int status;
+  private int status;//0—任何一方没有确认，1——买家确认，10——卖家确认，11——双方确认。负数——异常。
   private int buyer;
   private int seller;
   private LocalDateTime doneTime;

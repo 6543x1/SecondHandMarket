@@ -31,28 +31,48 @@ public class GoodsController
     @PostMapping(value = "/newGoods",produces = "application/json;charset=UTF-8")
     public String newGoods(Goods goods,ModelMap modelMap)throws Exception{
         System.out.println("收到商品信息");
-        int uid= (int) modelMap.get("uid");
+        if (goods.getPrice() > 99999)
+        {
+            return objectMapper.writeValueAsString(Result.error("不允许价格超过99999"));
+        }
+        int uid = (int) modelMap.get("uid");
         goods.setStatus(0);//0待审核 1未卖出 2卖出 -1非法商品
         goods.setUploadTime(LocalDateTime.now());
-        goods.setUid((int)modelMap.get("uid"));
+        goods.setUid((int) modelMap.get("uid"));
         goodsService.saveGoods(goods);
         return objectMapper.writeValueAsString(Result.success("上传商品信息成功"));
     }
-    @RequestMapping(value = "/getGoods",produces = "application/json;charset=UTF-8")
-    public PageInfo getGoods(@RequestParam(value = "pageNum", defaultValue="1") int pageNum, ModelMap modelMap){
-        PageHelper.startPage(pageNum,10);
-        List<Goods> list=goodsService.queryGoods();
+
+    @RequestMapping(value = "/getGoods", produces = "application/json;charset=UTF-8")
+    public PageInfo getGoods(@RequestParam(value = "pageNum", defaultValue = "1") int pageNum, ModelMap modelMap)
+    {
+        PageHelper.startPage(pageNum, 10);
+        List<Goods> list = goodsService.queryGoods();
         return new PageInfo<>(list);
     }
-    @RequestMapping(value = "/getMaps",produces = "application/json;charset=UTF-8")
-    public String getMaps(){
-       for(String x: theNewMap.values()){
-           System.out.println(x);
-       }
-       return "success";
+
+    @RequestMapping(value = "/searchGoods", produces = "application/json;charset=UTF-8")
+    public PageInfo searchGoods(@RequestParam(value = "pageNum", defaultValue = "1") int pageNum,
+                                @RequestParam(value = "keyValue") String keyValue,
+                                ModelMap modelMap)
+    {
+        PageHelper.startPage(pageNum, 10);
+        List<Goods> list = goodsService.search(keyValue);
+        return new PageInfo<>(list);
     }
+
+    @RequestMapping(value = "/getMaps", produces = "application/json;charset=UTF-8")
+    public String getMaps()
+    {
+        for (String x : theNewMap.values())
+        {
+            System.out.println(x);
+        }
+        return "success";
+    }
+
     @PreAuthorize("hasAnyAuthority('admin')")
-    @RequestMapping(value = "/setTestGoods",produces = "application/json;charset=UTF-8")
+    @RequestMapping(value = "/setTestGoods", produces = "application/json;charset=UTF-8")
     public String setTestGoods()  throws Exception{
        Goods goods=new Goods();
         goods.setPrice(999999.99);

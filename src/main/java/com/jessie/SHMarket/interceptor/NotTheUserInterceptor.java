@@ -31,8 +31,8 @@ public class NotTheUserInterceptor implements HandlerInterceptor
     {
         //将会在controller执行前拦截，true则放行
         System.out.println("拦截器1已经被执行。。。");
-        int buyer= (int) request.getAttribute("uid");
-        User theBuyer=userService.getUser(buyer);
+        int buyer = (int) request.getSession().getAttribute("uid");
+        User theBuyer = userService.getUser(buyer);
         if (!theBuyer.getUsername().equals(UserController.getCurrentUsername()))
         {
             //重置response

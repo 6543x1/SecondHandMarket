@@ -5,12 +5,9 @@ import com.jessie.SHMarket.entity.User;
 import com.jessie.SHMarket.service.PermissionService;
 import com.jessie.SHMarket.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.core.GrantedAuthority;
-import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
-import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
@@ -37,15 +34,17 @@ public class UserDetailServiceImpl implements UserDetailsService
         {
             return null;
         }
-            //throw new UsernameNotFoundException("没找到用户");
-        List<Permission> authorities=permissionService.getAllUserPermissions(user.getUid());
-        String[] permissionArray=new String[authorities.size()];
-        List<String> permissionNames=new ArrayList<>();
-        authorities.forEach(x->permissionNames.add(x.getName()));
+        //throw new UsernameNotFoundException("没找到用户");
+        List<Permission> authorities = permissionService.getAllUserPermissions(user.getUid());
+        String[] permissionArray = new String[authorities.size()];
+        List<String> permissionNames = new ArrayList<>();
+        authorities.forEach(x -> permissionNames.add(x.getName()));
         permissionNames.toArray(permissionArray);
         System.out.println(permissionNames.toString());
         //authorities.add(new SimpleGrantedAuthority("ROLE_" + role));
-        UserDetails userDetails=  org.springframework.security.core.userdetails.User.withUsername(user.getUsername()).password(user.getPassword()).authorities(permissionArray).build();
+
+//        UserDetails userDetails= new JwtUser(user.getUid(),user.getUsername(),user.getPassword(),permissionNames,true);
+        UserDetails userDetails = org.springframework.security.core.userdetails.User.withUsername(user.getUsername()).password(user.getPassword()).authorities(permissionArray).build();
         return userDetails;
     }
 }

@@ -1,17 +1,19 @@
 package com.jessie.SHMarket.entity;
 
 
-public class GoodsImg
+import java.io.Serializable;
+
+public class GoodsImg implements Serializable
 {
 
-  private int imageId;
-  private String name;
-  private int gid;
-  private int uid;
-  private String path;
+    private int imageId;
+    private String name;
+    private int gid;
+    private int uid;
+    private String path;
 
-  @Override
-  public String toString()
+    @Override
+    public String toString()
   {
     return "GoodsImg{" +
             "imageId=" + imageId +

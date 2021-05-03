@@ -1,49 +1,78 @@
 package com.jessie.SHMarket.entity;
 
 
+import com.alibaba.fastjson.annotation.JSONField;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import org.springframework.context.annotation.Configuration;
 
+import java.io.Serializable;
 import java.time.LocalDateTime;
 
 @Configuration
-public class Goods {
+public class Goods implements Serializable
+{
 
-  private int gid;
-  private String description;
-  private String label;
-  private String brand;
-  private String quality;
-  private int uid;
-  private int status;
-  private LocalDateTime uploadTime;
-  private double price;
-  @Override
-  public String toString()
-  {
-    return "Goods{" +
-            "gid=" + gid +
-            ", description='" + description + '\'' +
-            ", label='" + label + '\'' +
-            ", brand='" + brand + '\'' +
-            ", quality='" + quality + '\'' +
-            ", uid=" + uid +
-            ", status=" + status +
-            ", uploadTime=" + uploadTime.toString() +
-            ", price=" + price +
-            '}';
-  }
+    protected int gid;
+    protected String description;
+    protected String label;
+    protected String brand;
+    protected String quality;
+    protected int uid;
+    protected int status;
+    protected LocalDateTime uploadTime;
+    protected double price;
+    protected int imgNum;
+    protected String contact;
 
-  public double getPrice()
-  {
-    return price;
-  }
+    @Override
+    public String toString()
+    {
+        return "Goods{" +
+                "gid=" + gid +
+                ", description='" + description + '\'' +
+                ", label='" + label + '\'' +
+                ", brand='" + brand + '\'' +
+                ", quality='" + quality + '\'' +
+                ", uid=" + uid +
+                ", status=" + status +
+                ", uploadTime=" + uploadTime +
+                ", price=" + price +
+                ", imgNum=" + imgNum +
+                ", cid=" + contact +
+                '}';
+    }
 
-  public void setPrice(double price)
-  {
-    this.price = price;
-  }
+    public String getContact()
+    {
+        return contact;
+    }
+
+    public void setContact(String contact)
+    {
+        this.contact = contact;
+    }
+
+    public int getImgNum()
+    {
+        return imgNum;
+    }
+
+    public void setImgNum(int imgNum)
+    {
+        this.imgNum = imgNum;
+    }
+
+    public double getPrice()
+    {
+        return price;
+    }
+
+    public void setPrice(double price)
+    {
+        this.price = price;
+    }
   @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss",timezone = "GMT+8")//原来这样就可以，之前坑死前端了。。
+  @JSONField(format = "yyyy-MM-dd HH:mm:ss")
   public LocalDateTime getUploadTime()
   {
     return uploadTime;

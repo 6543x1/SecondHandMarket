@@ -3,7 +3,6 @@ package com.jessie.SHMarket.service.impl;
 import com.jessie.SHMarket.service.MailService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.mail.MailException;
-import org.springframework.mail.MailSender;
 import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSenderImpl;
 import org.springframework.stereotype.Service;
@@ -23,7 +22,12 @@ public class MailServiceImpl implements MailService
     @Override
     public void sendResetPw(String dest, String theInfo)
     {
-        SimpleMailMessage msg = new SimpleMailMessage(this.findPwTemplate);
+        if (dest == null)
+        {
+            System.out.println("邮箱地址为空");
+            return;
+        }
+        SimpleMailMessage msg = new SimpleMailMessage(findPwTemplate);
         msg.setTo(dest);//接收人
         msg.setText(theInfo);  //这里的邮件内容是 文本类型
         // msg.setCc(cc);// 抄送
@@ -44,6 +48,11 @@ public class MailServiceImpl implements MailService
     @Override
     public void sendNewOrder(String dest, String theInfo)
     {
+        if (dest == null)
+        {
+            System.out.println("邮箱地址为空");
+            return;
+        }
         SimpleMailMessage msg = new SimpleMailMessage(this.newOrderTemplate);
         msg.setTo(dest);//接收人
         msg.setText(theInfo);  //这里的邮件内容是 文本类型
@@ -56,6 +65,28 @@ public class MailServiceImpl implements MailService
         }
 
     }
+
+    @Override
+    public void newMessage(String subject, String dest, String theInfo)
+    {
+        if (dest == null)
+        {
+            System.out.println("邮箱地址为空");
+            return;
+        }
+        SimpleMailMessage msg = new SimpleMailMessage(this.findPwTemplate);
+        msg.setSubject(subject);
+        msg.setTo(dest);
+        msg.setText(theInfo);
+        try
+        {
+            this.mailSender.send(msg);
+        } catch (MailException ex)
+        {
+            System.out.println(ex.getMessage());
+        }
+    }
+
     public static String getRandomString()
     {
         String val = "";

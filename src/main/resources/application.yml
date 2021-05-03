@@ -14,20 +14,48 @@ spring:
   mail:
     host: smtp.office365.com
     username: 6543x1@outlook.com
-    password: bugaoshuni
+    password: 123456cnm
     properties:
       mail:
         smtp:
           auth: true
-        starttls:
-          enable: true
-          required: true
+          starttls:
+            enable: true
+            required: true
     port: 587
   servlet:
     multipart:
       enabled: true #是否启用http上传处理
       max-request-size: 100MB #最大请求文件的大小
       max-file-size: 20MB #设置单个文件最大长度
+  #redis配置
+  redis:
+    #是否开启redis缓存 true开启 false关闭
+    open: true
+    #Redis服务器地址
+    host: localhost
+    #Redis服务器连接端口
+    port: 6379
+    #Redis数据库索引（默认为0）
+    database: 0
+    jedis:
+      pool:
+        #连接池最大连接数（使用0表示没有限制）
+        max-active: 0
+        #连接池最大阻塞等待时间（使用0表示没有限制）
+        max-wait: 3000
+        #连接池中的最大空闲连接
+        max-idle: 100
+        #连接池中的最小空闲连接
+        min-idle: 50
+        #控制一个pool可分配多少个jedis实例,用来替换上面的redis.maxActive,如果是jedis 2.4以后用该属性
+        maxTotal: 500
+    #连接超时时间（毫秒）
+    timeout: 3000
+    #在空闲时检查有效性, 默认false
+    testWhileIdle: true
+    #是否在从池中取出连接前进行检验,如果检验失败,则从池中去除连接并尝试取出另一个
+    testOnBorrow: true
 logging:
   level:
     root: info
@@ -39,4 +67,13 @@ pagehelper:
   reasonable: true
   support-methods-arguments: true
   params: count=countSql
+# 配置JWT
+jwt:
+  route:
+    authentication:
+      path: /user/login
+  header: Authorization
+  expiration: 604800
+  secret: unknown
+  # secret是使用的密钥，目前暂时固定，因为弄成随机有点麻烦，要不直接用Bcrypt?。。。好像jjwt不支持
 

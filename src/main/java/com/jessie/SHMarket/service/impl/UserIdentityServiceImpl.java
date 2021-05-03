@@ -23,4 +23,10 @@ public class UserIdentityServiceImpl implements UserIdentityService
     {
         return userIdentityDAO.userIdentity(uid);
     }
+
+    @Override
+    public UserIdentity userIdentity(String No)
+    {
+        return userIdentityDAO.userIdentityByNo(No);
+    }
 }

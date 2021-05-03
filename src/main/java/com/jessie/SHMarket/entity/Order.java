@@ -1,24 +1,28 @@
 package com.jessie.SHMarket.entity;
 
 
+import com.alibaba.fastjson.annotation.JSONField;
 import com.fasterxml.jackson.annotation.JsonFormat;
 
+import java.io.Serializable;
 import java.time.LocalDateTime;
 
-public class Order {
+public class Order implements Serializable
+{
 
-  private int oid;
-  private LocalDateTime generatedTime;
-  private int status;//0—任何一方没有确认，1——买家确认，10——卖家确认，11——双方确认。负数——异常。
-  private int buyer;
-  private int seller;
-  private LocalDateTime doneTime;
-  private LocalDateTime deliveryTime;
-  private int cid;
-  private String location;
+    private int oid;
+    private LocalDateTime generatedTime;
+    private int status;//0—任何一方没有确认，1——买家确认，10——卖家确认，11——双方确认。负数——异常。
+    private int buyer;
+    private int seller;
+    private LocalDateTime doneTime;
+    private LocalDateTime deliveryTime;
+    private int cid;
+    private String location;
   private int gid;
 
-  @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss",timezone = "GMT+8")
+    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss", timezone = "GMT+8")
+    @JSONField(format = "yyyy-MM-dd HH:mm:ss")
   public LocalDateTime getGeneratedTime()
   {
     return generatedTime;
@@ -28,7 +32,9 @@ public class Order {
   {
     this.generatedTime = generatedTime;
   }
-  @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss",timezone = "GMT+8")
+
+    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss", timezone = "GMT+8")
+    @JSONField(format = "yyyy-MM-dd HH:mm:ss")
   public LocalDateTime getDoneTime()
   {
     return doneTime;
@@ -38,7 +44,9 @@ public class Order {
   {
     this.doneTime = doneTime;
   }
-  @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss",timezone = "GMT+8")
+
+    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss", timezone = "GMT+8")
+    @JSONField(format = "yyyy-MM-dd HH:mm:ss")
   public LocalDateTime getDeliveryTime()
   {
     return deliveryTime;

@@ -1,7 +1,9 @@
 package com.jessie.SHMarket.entity;
 
 
-public class OrderComment
+import java.io.Serializable;
+
+public class OrderComment implements Serializable
 {
 
     private int oid;
@@ -12,6 +14,16 @@ public class OrderComment
     private String s_Comment;
     private String s_Type;
 
+    public OrderComment()
+    {
+    }
+
+    public OrderComment(int oid, int buyer, int seller)
+    {
+        this.oid = oid;
+        this.buyer = buyer;
+        this.seller = seller;
+    }
 
     public int getOid()
     {

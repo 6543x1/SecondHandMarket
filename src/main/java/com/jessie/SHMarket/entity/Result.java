@@ -1,12 +1,15 @@
 package com.jessie.SHMarket.entity;
 
 
-public class Result<T>
+import java.io.Serializable;
+
+public class Result<T> implements Serializable
 {
     int code;
     boolean status;
     String msg;
     T data;
+
     /*
     * {
     "timestamp": 1617713474510,

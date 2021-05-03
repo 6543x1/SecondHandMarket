@@ -26,6 +26,12 @@ public class OrderServiceImpl implements OrderService
     }
 
     @Override
+    public void expireOrder(int oid)
+    {
+        orderDAO.expireOrder(oid);
+    }
+
+    @Override
     public void deleteOrder(int oid)
     {
         orderDAO.deleteOrder(oid);
@@ -41,5 +47,17 @@ public class OrderServiceImpl implements OrderService
     public Order getOrder(int oid)
     {
         return orderDAO.getOrder(oid);
+    }
+
+    @Override
+    public Order getOrderByGid(int gid)
+    {
+        return orderDAO.getOrderByGid(gid);
+    }
+
+    @Override
+    public int newestOrder()
+    {
+        return orderDAO.newestOrder();
     }
 }

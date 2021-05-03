@@ -1,17 +1,19 @@
 package com.jessie.SHMarket.entity;
 
 
-public class UserIdentity
+import java.io.Serializable;
+
+public class UserIdentity implements Serializable
 {
 
-  private int uid;
-  private String no;
-  private String school;
+    private int uid;
+    private String No;
+    private String school;
 
 
-  public int getUid()
-  {
-    return uid;
+    public int getUid()
+    {
+        return uid;
   }
 
   public void setUid(int uid)
@@ -22,12 +24,12 @@ public class UserIdentity
 
   public String getNo()
   {
-    return no;
+      return No;
   }
 
   public void setNo(String no)
   {
-    this.no = no;
+      this.No = no;
   }
 
 

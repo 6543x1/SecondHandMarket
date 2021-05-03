@@ -15,4 +15,7 @@ public interface UserIdentityDAO
 
     @Select("select * from user_identity where uid =#{uid}")
     UserIdentity userIdentity(int uid);
+
+    @Select("select * from user_identity where No =#{No}")
+    UserIdentity userIdentityByNo(String No);
 }

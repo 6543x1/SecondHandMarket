@@ -1,17 +1,20 @@
 package com.jessie.SHMarket.entity;
 
 
-public class ContactInfo {
+import java.io.Serializable;
 
-  private int cid;
-  private String name;
-  private String phoneNumber;
-  private String location;
-  private int uid;
+public class ContactInfo implements Serializable
+{
 
-  @Override
-  public String toString()
-  {
+    private int cid;
+    private String name;
+    private String phoneNumber;
+    private String location;
+    private int uid;
+
+    @Override
+    public String toString()
+    {
     return "ContactInfo{" +
             "cid=" + cid +
             ", name='" + name + '\'' +

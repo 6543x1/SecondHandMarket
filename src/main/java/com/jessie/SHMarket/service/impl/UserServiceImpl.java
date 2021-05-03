@@ -1,7 +1,9 @@
 package com.jessie.SHMarket.service.impl;
 
 import com.jessie.SHMarket.dao.UserDAO;
+import com.jessie.SHMarket.dao.UserPortraitDAO;
 import com.jessie.SHMarket.entity.User;
+import com.jessie.SHMarket.entity.UserPortrait;
 import com.jessie.SHMarket.service.UserService;
 import org.apache.commons.httpclient.NameValuePair;
 import org.apache.commons.httpclient.methods.PostMethod;
@@ -9,11 +11,14 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+
 @Service("userService")
 public class UserServiceImpl implements UserService
 {
     @Autowired
     private UserDAO userDAO;
+    @Autowired
+    private UserPortraitDAO userPortraitDAO;
 
     @Override
     public void saveUser(User user)
@@ -52,6 +57,7 @@ public class UserServiceImpl implements UserService
             System.out.println(result);
             System.out.println(postMethod.getStatusCode());
             code = postMethod.getStatusCode();
+            postMethod.abort();
         } catch (Exception e)
         {
             System.out.println("请求异常" + e.getMessage());
@@ -91,7 +97,31 @@ public class UserServiceImpl implements UserService
     @Override
     public void setMailAddr(int uid, String mailAddr)
     {
-        userDAO.setMailAddr(uid,mailAddr);
+        userDAO.setMailAddr(uid, mailAddr);
+    }
+
+    @Override
+    public String getMailAddr(String username)
+    {
+        return userDAO.getMailAddrByUsername(username);
+    }
+
+    @Override
+    public String getMailAddr(int uid)
+    {
+        return userDAO.getMailAddrByUid(uid);
+    }
+
+    @Override
+    public String getNickName(int uid)
+    {
+        return userDAO.getNickNameByUid(uid);
+    }
+
+    @Override
+    public String getNickName(String username)
+    {
+        return userDAO.getNickNameByUsername(username);
     }
 
     @Override
@@ -104,6 +134,13 @@ public class UserServiceImpl implements UserService
     public void setStatus(int uid, int status)
     {
         userDAO.setStatus(uid, status);
+        userDAO.updateEvaluation(uid, calculateEvaluation(status));
+    }
+
+    @Override
+    public void plusStatus(int uid, int score)
+    {
+        userDAO.setStatus(uid, userDAO.getStatus(uid) + score);
     }
 
     @Override
@@ -111,4 +148,67 @@ public class UserServiceImpl implements UserService
     {
         userDAO.saveImg(user);
     }
+
+    @Override
+    public int newestUid()
+    {
+        return userDAO.newestUid();
+    }
+
+    @Override
+    public void updateAdditionalScore(int uid, int score)
+    {
+        userPortraitDAO.updateAdditionalScore(uid, userPortraitDAO.getAdditionalScore(uid) + score);
+    }
+
+    @Override
+    public int getAdditionalScore(int uid)
+    {
+        return userPortraitDAO.getAdditionalScore(uid);
+    }
+
+    @Override
+    public void updatePunishedScore(int uid, int score)
+    {
+        userPortraitDAO.updatePunishedScore(uid, userPortraitDAO.getPunishedScore(uid) + score);
+    }
+
+    @Override
+    public int calculateEvaluation(int status)
+    {
+        int evaluation = 0;
+        if (status >= 105)
+        {
+            evaluation = 1;
+        } else if (status >= 70 && status < 105)
+        {
+            evaluation = 2;
+        } else if (status >= 40 && status < 70)
+        {
+            evaluation = 3;
+        } else if (status < 60)
+        {
+            evaluation = 4;
+        }
+        return evaluation;//IDEA不给我弹优化了？？
+    }
+
+    @Override
+    public void newUserPortrait(UserPortrait userPortrait)
+    {
+        userPortraitDAO.newUser(userPortrait);
+    }
+
+    @Override
+    public UserPortrait getUserPortrait(int uid)
+    {
+        return userPortraitDAO.getUserPortrait(uid);
+    }
+
+    @Override
+    public int newestUser()
+    {
+        return userDAO.newestUid();
+    }
+
 }

@@ -1,17 +1,20 @@
 package com.jessie.SHMarket.entity;
 
 
-public class Permission {
+import java.io.Serializable;
 
-  private int id;
-  private String name;
-  private String description;
-  private String url;
+public class Permission implements Serializable
+{
 
-  @Override
-  public String toString()
-  {
-    return "Permission{" +
+    private int id;
+    private String name;
+    private String description;
+    private String url;
+
+    @Override
+    public String toString()
+    {
+        return "Permission{" +
             "id=" + id +
             ", name='" + name + '\'' +
             ", description='" + description + '\'' +

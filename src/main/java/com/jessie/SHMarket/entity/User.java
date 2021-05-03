@@ -1,6 +1,8 @@
 package com.jessie.SHMarket.entity;
 
-public class User
+import java.io.Serializable;
+
+public class User implements Serializable
 {
     String username;
     String password;
@@ -10,6 +12,7 @@ public class User
     int status;
     String role;
     String img_path;
+    int evaluation;
 
     @Override
     public String toString()
@@ -24,6 +27,16 @@ public class User
                 ", role='" + role + '\'' +
                 ", img_path='" + img_path + '\'' +
                 '}';
+    }
+
+    public int getEvaluation()
+    {
+        return evaluation;
+    }
+
+    public void setEvaluation(int evaluation)
+    {
+        this.evaluation = evaluation;
     }
 
     public String getImg_path()

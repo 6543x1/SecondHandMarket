@@ -1,28 +1,64 @@
 package com.jessie.SHMarket.configuration;
 
-import com.jessie.SHMarket.service.UserService;
 import com.jessie.SHMarket.service.impl.UserDetailServiceImpl;
-import org.apache.tomcat.util.security.MD5Encoder;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
+import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
 import org.springframework.security.config.annotation.method.configuration.EnableGlobalMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
-import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
+import org.springframework.security.config.annotation.web.builders.WebSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
+import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
-import org.springframework.security.crypto.factory.PasswordEncoderFactories;
-import org.springframework.security.crypto.password.DelegatingPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.security.web.csrf.CookieCsrfTokenRepository;
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
 @Configuration
 @EnableGlobalMethodSecurity(prePostEnabled = true)
 public class WebSecurityConfig extends WebSecurityConfigurerAdapter
 {
     @Autowired
-    private UserDetailServiceImpl theUserDetailService;
+    private JwtAuthenticationEntryPoint jwtAuthenticationEntryPoint;
+    @Autowired
+    private UserDetailServiceImpl userDetailServiceimpl;
+    @Autowired
+    private JwtRequestFilter jwtRequestFilter;
+    @Autowired
+    private UserDetailServiceImpl theUserDetailService;//和上面重了 改一下
+    @Autowired
+    private MyAccessDeniedHandler myAccessDeniedHandler;
+
+
+    @Value("${jwt.header}")//意思是从yml中去读
+    private String tokenHeader;
+
+    @Value("${jwt.route.authentication.path}")
+    private String authenticationPath;
+
+    //    @Autowired
+//    public void configureGlobal(AuthenticationManagerBuilder auth) throws Exception {
+//        // configure AuthenticationManager so that it knows from where to load
+//        // user for matching credentials
+//        // Use BCryptPasswordEncoder
+//        auth.userDetailsService(userDetailServiceimpl).passwordEncoder(passwordEncoder());
+//    }
+    @Bean
+    public PasswordEncoder passwordEncoder()
+    {
+        return new BCryptPasswordEncoder();
+    }
+
+    @Bean
+    @Override
+    public AuthenticationManager authenticationManagerBean() throws Exception
+    {
+        return super.authenticationManagerBean();
+    }
+
 
     @Bean
     public BCryptPasswordEncoder bCryptPasswordEncoder()
@@ -42,31 +78,90 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter
     protected void configure(HttpSecurity http) throws Exception
     {
         http
-                .csrf()
-                .csrfTokenRepository(new CookieCsrfTokenRepository())
-                //.csrfTokenRepository(CookieCsrfTokenRepository.withHttpOnlyFalse())//httpOnly怎么开？？
-                .ignoringAntMatchers("/user/isLogin")
-                .ignoringAntMatchers("/user/Register")
-                .ignoringAntMatchers("/user/login")
-                .ignoringAntMatchers("/user/editPwByMail")
-        ;
-        http
+                .csrf().disable()
+                .exceptionHandling().authenticationEntryPoint(jwtAuthenticationEntryPoint)
+                .accessDeniedHandler(myAccessDeniedHandler)
+                .and()
+                .sessionManagement()
+                .sessionCreationPolicy(SessionCreationPolicy.STATELESS)//暂时Required
+                // dont authenticate this particular request
+                .and()
                 .authorizeRequests()
                 .antMatchers("/admin/**").hasAnyAuthority("admin")
-                .antMatchers("/r/r2").hasAuthority("p2")
-                .antMatchers("/r/**").authenticated()//基于url的权限管理
+                .antMatchers(authenticationPath).permitAll()
+                .antMatchers("/user/Register").permitAll()
+                .antMatchers("/user/login").permitAll()
+                .antMatchers("/user/sendMail").permitAll()
+                .antMatchers("/user/ResetPwByMail").permitAll()
+                .antMatchers(HttpMethod.POST).authenticated()//所有post请求必须经过认证除了登录注册找回密码
                 .anyRequest().permitAll()
+
                 .and()
+                .addFilterBefore(jwtRequestFilter, UsernamePasswordAuthenticationFilter.class)
                 .formLogin()
-                    .loginProcessingUrl("/user/login")
-                    .successForwardUrl("/user/loginSuccess")
-                    .failureForwardUrl("/user/loginError")
+                .loginProcessingUrl("/user/login")
+                //.successForwardUrl("/auth")
+                .failureForwardUrl("/user/loginError")
                 .and()
                 .logout()
-                    .logoutSuccessUrl("/user/loginOut")
-                .and()
-                .exceptionHandling()
-                    .accessDeniedPage("/user/noAccess")
-                ;
+                .logoutSuccessUrl("/user/Logout")
+        ;
+
+//                .csrfTokenRepository(new CookieCsrfTokenRepository())
+//                //.csrfTokenRepository(CookieCsrfTokenRepository.withHttpOnlyFalse())//httpOnly怎么开？？
+//                .ignoringAntMatchers("/user/isLogin")
+//                .ignoringAntMatchers("/user/Register")
+//                .ignoringAntMatchers("/user/login")
+//                .ignoringAntMatchers("/user/editPwByMail")
+        ;
+        // disable page caching
+//        http
+//                .headers()
+//                .frameOptions().sameOrigin()  // required to set for H2 else H2 Console will be blank.
+//                .cacheControl();
+        //上面有anyrequest了，下面不能再弄
+//        http
+//                .authorizeRequests()
+//                .antMatchers("/admin/**").hasAnyAuthority("admin")
+//                //基于url的权限管理
+//                .anyRequest().permitAll()
+//                .and()
+//                .formLogin()
+//                    .loginProcessingUrl("/user/login")
+//                    .successForwardUrl("/user/loginSuccess")
+//                    .failureForwardUrl("/user/loginError")
+//                .and()
+//                .logout()
+//                    .logoutSuccessUrl("/user/loginOut")
+//                .and()
+//                .exceptionHandling()
+//                    .accessDeniedPage("/user/noAccess")
+        ;
     }
+
+    @Override
+    public void configure(WebSecurity web) throws Exception
+    {
+        // AuthenticationTokenFilter will ignore the below paths
+        web
+                .ignoring()
+                .antMatchers(
+                        HttpMethod.POST,
+                        authenticationPath
+                )
+
+                // allow anonymous resource requests
+                .and()
+                .ignoring()
+                .antMatchers(
+                        HttpMethod.GET,
+                        "/",
+                        "/*.html",
+                        "/favicon.ico",
+                        "/**/*.html",
+                        "/**/*.css",
+                        "/**/*.js"
+                );
+    }
+
 }

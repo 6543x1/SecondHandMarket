@@ -36,6 +36,8 @@ public interface UserService
 
     void plusStatus(int uid, int score);
 
+    int getUid(String username);
+
     int newestUid();
 
     int calculateEvaluation(int status);

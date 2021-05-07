@@ -1,6 +1,8 @@
 package com.jessie.SHMarket.configuration;
 
+import com.jessie.SHMarket.entity.Order;
 import com.jessie.SHMarket.service.OrderService;
+import com.jessie.SHMarket.service.ShopCartService;
 import com.jessie.SHMarket.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.connection.Message;
@@ -8,6 +10,8 @@ import org.springframework.data.redis.listener.KeyExpirationEventMessageListener
 import org.springframework.data.redis.listener.RedisMessageListenerContainer;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.time.LocalDateTime;
 
 /**
  * 主要作用就是:接收过期的redis消息,获取到key,key就是订单号,然后去更新订单号的状态(说明一下:用户5分钟不支付的话取消用户的订单)
@@ -22,6 +26,10 @@ public class RedisKeyExpirationListener extends KeyExpirationEventMessageListene
     OrderService orderService;
     @Autowired
     UserService userService;
+    @Autowired
+    RedisUtil redisUtil;
+    @Autowired
+    ShopCartService shopCartService;
 
     public RedisKeyExpirationListener(RedisMessageListenerContainer listenerContainer)
     {
@@ -45,14 +53,23 @@ public class RedisKeyExpirationListener extends KeyExpirationEventMessageListene
         } else if ("orderGenerated".equals(type))
         {
             int oid = Integer.parseInt(argus);
-            orderService.expireOrder(oid);
+            Order order = new Order();
+            order.setStatus(11);
+            order.setOid(oid);
+            order.setDoneTime(LocalDateTime.now());
+            orderService.doneOrder(order);
         } else if ("ClearExtraStatus".equals(type))
         {
             int uid = Integer.parseInt(argus);
             int expiredScore = (int) (userService.getAdditionalScore(uid) * 0.8 * (-1));
             userService.plusStatus(uid, expiredScore);
             userService.updateAdditionalScore(uid, userService.getAdditionalScore(uid) + expiredScore);
+            redisUtil.set("ClearExtraStatus|" + uid, "365DAY", 365 * 24 * 60 * 60);
             //可能会有一点四舍五入的问题。。？不管了
+        } else if ("Shop_Cart".equals(type))
+        {
+            shopCartService.getShopCart(Integer.parseInt(argus));
+            redisUtil.delete(theInfo);
         } else
         {
             System.out.println(theInfo);

@@ -12,7 +12,7 @@ public interface UserDAO
 {
 
     @Insert("insert into user (username,password,status,role,evaluation) values (#{username},#{password},#{status},#{role},#{evaluation})")
-//里面是大括号
+    @Options(useGeneratedKeys = true, keyProperty = "uid", keyColumn = "uid")
     void saveUser(User user);
 
     @Update("update user set img_path=#{img_path} where uid=#{uid} ")
@@ -38,6 +38,9 @@ public interface UserDAO
 
     @Select("select * from user where uid= #{uid}")
     User getUserByUid(int uid);//方法重载会报错。。。
+
+    @Select("select uid from user where username=#{username}")
+    int getUid(String username);
 
     @Update("update user set password=#{password} where uid=#{uid}")
     void editPassword(@Param("uid") int uid, @Param("password") String password);

@@ -1,19 +1,12 @@
 package com.jessie.SHMarket.controller;
 
 import com.alibaba.fastjson.JSON;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.pagehelper.PageHelper;
 import com.github.pagehelper.PageInfo;
 import com.jessie.SHMarket.configuration.JwtTokenUtil;
 import com.jessie.SHMarket.configuration.RedisUtil;
-import com.jessie.SHMarket.entity.Order;
-import com.jessie.SHMarket.entity.OrderComment;
-import com.jessie.SHMarket.entity.Result;
-import com.jessie.SHMarket.entity.User;
-import com.jessie.SHMarket.service.GoodsService;
-import com.jessie.SHMarket.service.OrderCommentService;
-import com.jessie.SHMarket.service.OrderService;
-import com.jessie.SHMarket.service.UserService;
+import com.jessie.SHMarket.entity.*;
+import com.jessie.SHMarket.service.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.ui.ModelMap;
@@ -35,13 +28,13 @@ public class OrderController
     @Autowired
     UserService userService;
     @Autowired
-    ObjectMapper objectMapper;
-    @Autowired
     OrderCommentService orderCommentService;
     @Autowired
     JwtTokenUtil jwtTokenUtil;
     @Autowired
     RedisUtil redisUtil;
+    @Autowired
+    MailService mailService;
 
     @PreAuthorize("hasAnyAuthority('admin','user')")
     @PostMapping(value = "/buy", produces = "application/json;charset=UTF-8")
@@ -71,33 +64,37 @@ public class OrderController
         orderComment.setOid(order.getOid());
         orderCommentService.newOrderComment(orderComment);
         redisUtil.set("orderGenerated|" + orderService.newestOrder(), "7 DAYS", 60 * 60 * 24 * 7);
+        redisUtil.saveUserMessage(order.getSeller(), new UserMessage("你的一个商品" + "#{" + order.getGid() + "}" + "已经被拍下了", "商品消息", LocalDateTime.now()));
+        mailService.sendNewOrder(userService.getMailAddr(order.getSeller()), "你的一个商品被拍下了，快去看看吧");
         return JSON.toJSONString(Result.success("下单成功", order));
     }
 
     @PreAuthorize("hasAnyAuthority('admin','user')")
     @PostMapping("/doneOrder")
-    public String doneOrder(int oid, @RequestParam(value = "cancel", defaultValue = "false") boolean cancel, ModelMap modelMap) throws Exception
+    public String doneOrder(int oid, @RequestParam(value = "cancel", defaultValue = "false") boolean cancel, HttpServletRequest request) throws Exception
     {
-        int uid = (int) modelMap.get("uid");
+        int uid = jwtTokenUtil.getUidFromToken(request.getHeader("token"));
         Order theOrder = orderService.getOrder(oid);
         if (theOrder.getBuyer() != uid || theOrder.getSeller() != uid)
         {
-            return objectMapper.writeValueAsString(Result.error("你没有这个订单", 403));
+            return JSON.toJSONString(Result.error("你没有这个订单", 403));
         }//本来想写拦截器后面发现还挺麻烦的
         if (theOrder.getStatus() >= 11)
         {
-            return objectMapper.writeValueAsString(Result.error("订单已经完成了"));
+            return JSON.toJSONString(Result.error("订单已经完成了"));
         }
-        if (cancel = true)
+        if (cancel)
         {
             theOrder.setStatus(-1);
             goodsService.updateGoods(1, theOrder.getGid());
         } else if (theOrder.getBuyer() == uid)
         {
             theOrder.setStatus(theOrder.getStatus() + 10);
+            redisUtil.saveUserMessage(theOrder.getSeller(), new UserMessage("你的订单" + "#{" + theOrder.getOid() + "}" + "状态更新了", "订单消息", LocalDateTime.now()));
         } else
         {
             theOrder.setStatus(theOrder.getStatus() + 1);
+            redisUtil.saveUserMessage(theOrder.getBuyer(), new UserMessage("你的订单" + "#{" + theOrder.getOid() + "}" + "状态更新了", "订单消息", LocalDateTime.now()));
         }
         theOrder.setDoneTime(LocalDateTime.now());
         orderService.doneOrder(theOrder);
@@ -107,7 +104,7 @@ public class OrderController
     @PostMapping("/deleteOrderTruly")
     public String deleteOrderTruly(int oid) throws Exception{
         orderService.deleteOrder(oid);
-        return objectMapper.writeValueAsString(Result.success("订单已彻底删除"));
+        return JSON.toJSONString(Result.success("订单已彻底删除"));
     }
     @PreAuthorize("hasAnyAuthority('admin','user')")
     @PostMapping("/deleteOrder")
@@ -115,15 +112,15 @@ public class OrderController
     {
         if (!checkIsTheUser(order))
         {
-            return objectMapper.writeValueAsString(Result.error("不可以用别人号下单", 403));
+            return JSON.toJSONString(Result.error("不可以用别人号下单", 403));
         }
         if (order.getStatus() != 0 && order.getStatus() != 1)
         {
-            return objectMapper.writeValueAsString(Result.error("异常订单不可删除"));
+            return JSON.toJSONString(Result.error("异常订单不可删除"));
         }
         order.setStatus(-1);
         orderService.doneOrder(order);
-        return objectMapper.writeValueAsString(Result.success("订单已删除"));
+        return JSON.toJSONString(Result.success("订单已删除"));
     }
 
     @PreAuthorize("hasAnyAuthority('admin','user')")
@@ -133,6 +130,26 @@ public class OrderController
         PageHelper.startPage(pageNum, 5);
         User user = userService.getUser(UserController.getCurrentUsername());
         List<Order> list = orderService.getUserOrder(user.getUid());
+        return new PageInfo<>(list);
+    }
+
+    @PreAuthorize("hasAnyAuthority('admin','user')")
+    @PostMapping("/getUserSellerOrders")
+    public PageInfo getUserSellerOrders(@RequestParam(value = "pageNum", defaultValue = "1") int pageNum) throws Exception
+    {
+        PageHelper.startPage(pageNum, 5);
+        int uid = userService.getUid(UserController.getCurrentUsername());
+        List<OrderWithGoods> list = orderService.getSellerOrderWithGoods(uid);
+        return new PageInfo<>(list);
+    }
+
+    @PreAuthorize("hasAnyAuthority('admin','user')")
+    @PostMapping("/getUserBuyerOrders")
+    public PageInfo getUserBuyerOrders(@RequestParam(value = "pageNum", defaultValue = "1") int pageNum) throws Exception
+    {
+        PageHelper.startPage(pageNum, 5);
+        int uid = userService.getUid(UserController.getCurrentUsername());
+        List<OrderWithGoods> list = orderService.getBuyerOrderWithGoods(uid);
         return new PageInfo<>(list);
     }
 
@@ -150,7 +167,6 @@ public class OrderController
         }
         return JSON.toJSONString(order);
     }
-
     @PreAuthorize("hasAnyAuthority('admin','user')")
     @PostMapping(value = "/comment", produces = "application/json;charset=UTF-8")
     public String commentOrder(int oid, @RequestParam(defaultValue = "好评") String type, String comment, ModelMap modelMap)
@@ -182,6 +198,7 @@ public class OrderController
             {
                 userService.plusStatus(order.getSeller(), -5);
             }
+            redisUtil.saveUserMessage(order.getSeller(), new UserMessage("你的订单" + "#{" + order.getOid() + "}" + "收到了新评价", "订单消息", LocalDateTime.now()));
         } else
         {
             orderComment.setS_Comment(comment);
@@ -194,6 +211,7 @@ public class OrderController
             {
                 userService.plusStatus(order.getBuyer(), -5);
             }
+            redisUtil.saveUserMessage(order.getSeller(), new UserMessage("你的订单" + "#{" + order.getOid() + "}" + "收到了新评价", "订单消息", LocalDateTime.now()));
         }
         return JSON.toJSONString(Result.success("评价成功"));
     }

@@ -2,7 +2,7 @@ package com.jessie.SHMarket.service;
 
 import com.jessie.SHMarket.entity.Goods;
 import com.jessie.SHMarket.entity.GoodsAndSeller;
-import com.jessie.SHMarket.entity.Goods_More;
+import com.jessie.SHMarket.entity.Goods_Extended;
 
 import java.util.List;
 
@@ -18,17 +18,17 @@ public interface GoodsService
 
     int getUid(int gid);
 
-    List<Goods_More> queryGoods();
+    List<Goods_Extended> queryGoods();
 
     List<Goods> getUserGoods(int uid, boolean isOwn);
 
-    List<Goods> getUncheckedGoods();
+    List<Goods_Extended> getUncheckedGoods();
 
     void updateGoods(int status, int gid);
 
     void deleteGoods(int gid);
 
-    List<Goods_More> search(String keyValue);
+    List<Goods_Extended> search(String keyValue, String type);
 
     int queryTodayGoods(int uid);
 
@@ -40,7 +40,9 @@ public interface GoodsService
 
     List<GoodsAndSeller> getGoodsListWithBuyer();
 
-    Goods_More getGoodsFull(int gid);
+    Goods_Extended getGoodsFull(int gid);
+
+    Goods_Extended getRecommendGoods(String key);
 
 
 }

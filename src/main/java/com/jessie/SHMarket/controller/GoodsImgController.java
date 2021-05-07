@@ -2,10 +2,10 @@ package com.jessie.SHMarket.controller;
 
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.jessie.SHMarket.configuration.JwtTokenUtil;
 import com.jessie.SHMarket.entity.GoodsImg;
 import com.jessie.SHMarket.entity.Result;
+import com.jessie.SHMarket.exception.WrongFileTypeException;
 import com.jessie.SHMarket.service.GoodsImgService;
 import com.jessie.SHMarket.service.GoodsService;
 import com.jessie.SHMarket.service.UserService;
@@ -40,8 +40,6 @@ import static com.jessie.SHMarket.controller.UserController.getCurrentUsername;
 @SessionAttributes(value = {"username", "uid", "userPath", "resetCode", "mailAddr"}, types = {String.class, Integer.class, String.class, String.class, String.class})
 public class GoodsImgController
 {
-    @Autowired
-    ObjectMapper objectMapper;
     @Resource(name = "theImgSuffix")
     HashMap<Integer, String> theImgSuffix;
     @Autowired
@@ -90,7 +88,7 @@ public class GoodsImgController
                 String suffix = filename.substring(filename.lastIndexOf(".") + 1);
                 if (!theImgSuffix.containsValue(suffix))
                 {
-                    throw new RuntimeException("文件类型错误");
+                    throw new WrongFileTypeException("文件类型错误");
                 }
                 GoodsImg thisImage = new GoodsImg();
                 thisImage.setName(gid + "_" + i + "." + suffix);
@@ -105,18 +103,18 @@ public class GoodsImgController
             } catch (NullPointerException e)
             {
                 e.printStackTrace();
-                return objectMapper.writeValueAsString(Result.error("找不到文件的名字"));
-            } catch (RuntimeException e)
+                return JSON.toJSONString(Result.error("找不到文件的名字"));
+            } catch (WrongFileTypeException e)
             {
-                return objectMapper.writeValueAsString(Result.error("可能文件类型不对"));
+                return JSON.toJSONString(Result.error("可能文件类型不对"));
             } catch (Exception e)
             {
                 e.printStackTrace();
-                return objectMapper.writeValueAsString(Result.error("未知错误"));
+                return JSON.toJSONString(Result.error("未知错误"));
             }
         }
         goodsService.updateImgNum(gid, i);
-        return objectMapper.writeValueAsString(Result.success("全部上传成功"));
+        return JSON.toJSONString(Result.success("全部上传成功"));
     }
 
     @RequestMapping(value = "/getFirstPic", produces = "text/html;charset=UTF-8")
@@ -144,9 +142,9 @@ public class GoodsImgController
         } catch (IOException e)
         {
             e.printStackTrace();
-            return objectMapper.writeValueAsString(Result.error("服务器发生错误", 500));
+            return JSON.toJSONString(Result.error("服务器发生错误", 500));
         }
-        return objectMapper.writeValueAsString(Result.success("开始下载"));
+        return JSON.toJSONString(Result.success("开始下载"));
     }
 
     //感觉可以换用BASE64来上传图片

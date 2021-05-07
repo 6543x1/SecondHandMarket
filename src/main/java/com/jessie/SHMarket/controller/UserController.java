@@ -25,6 +25,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.File;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 
@@ -73,6 +74,27 @@ public class UserController
         }
     }
 
+    //Spring Security获取当前用会话的户信息
+    public static String getCurrentUsername()
+    {
+        String username = "";
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        Object principal = authentication.getPrincipal();
+        if (principal == null)
+        {
+            return null;
+        }
+        if (principal instanceof UserDetails)
+        {
+            UserDetails userDetails = (UserDetails) principal;
+            username = userDetails.getUsername();
+        } else
+        {
+            username = principal.toString();//????
+        }
+        return username;
+    }
+
     @PostMapping(value = "/upload", produces = "text/html;charset=UTF-8")
     public String UploadImg(HttpServletRequest request, @RequestParam("upload") MultipartFile upload, HttpServletRequest HttpServletRequest) throws Exception
     {
@@ -94,14 +116,15 @@ public class UserController
         {
             String filename = upload.getOriginalFilename();
             String suffix = filename.substring(filename.lastIndexOf(".") + 1);
+            String userFileName = uid + getCurrentUsername() + "." + suffix;
             if (!theImgSuffix.containsValue(suffix))
             {
                 throw new Exception("?");
             }
             User user = new User();
             user.setUid(uid);
-            user.setImg_path(path + "/" + upload.getOriginalFilename());
-            upload.transferTo(new File(path, upload.getOriginalFilename()));
+            user.setImg_path(path + "/" + userFileName);
+            upload.transferTo(new File(path, userFileName));
             userService.saveImg(user);
             System.out.println("头像保存成功，开始向数据库中更新用户数据");
 
@@ -117,17 +140,25 @@ public class UserController
         return JSON.toJSONString(Result.success("上传成功"));
     }
 
-    @PostMapping(value = "/downPic", produces = "text/html;charset=UTF-8")
-    public String down(HttpServletRequest request, HttpServletResponse response)
+    @GetMapping(value = "/downPic", produces = "text/html;charset=UTF-8")
+    public String down(@RequestParam(defaultValue = "0") int uid, HttpServletRequest request, HttpServletResponse response)
     {
-        String token = request.getHeader("token");
-        int uid = jwtTokenUtil.getUidFromToken(token);
-        User user = userService.getUser(uid);
 
-
-        if (user.getImg_path() == null)
+        if (uid == 0)
         {
-            return JSON.toJSONString(Result.error("没有头像", 404));
+            try
+            {
+                String token = request.getHeader("token");
+                uid = jwtTokenUtil.getUidFromToken(token);
+            } catch (Exception e)
+            {
+                return JSON.toJSONString(Result.error("服务器不知道返回谁的头像"));
+            }
+        }
+        User user = userService.getUser(uid);
+        if ("".equals(user.getImg_path()) || user.getImg_path() == null)
+        {
+            return JSON.toJSONString(Result.error("当前请求用户没有头像", 404));
         }
 
         try
@@ -150,34 +181,6 @@ public class UserController
         return JSON.toJSONString(Result.success("开始下载"));
     }
 
-    @PostMapping(value = "/Register", produces = "text/html;charset=UTF-8")
-    public String register(User user) throws Exception
-    {
-        //说回来要是有人破解了链接给我服务器扔冲蝗核弹咋办 springboot有防御措施吗...
-        if (user == null) return JSON.toJSONString(Result.error("无数据"));
-        System.out.println(user);
-        if(user.getUsername().length()>=15||user.getPassword().length()>=30){
-            return JSON.toJSONString(Result.error("想扔内存核弹？"));
-        }
-        System.out.println("取得注册用数据，开始向数据库中写入数据...");
-        if (userService.getUser(user.getUsername()) != null)
-        {
-            System.out.println("用户名已存在，请重试");
-            return JSON.toJSONString(Result.error("用户名已存在", 500));
-        }
-        user.setStatus(100);
-        user.setRole("user");
-        user.setNickName(getRandomString());
-        user.setPassword(bCryptPasswordEncoder.encode(user.getPassword()));//换用Bcrypt，自动加盐真香
-        user.setEvaluation(2);
-        userService.saveUser(user);
-        int theUid = userService.newestUid();
-        userTokenService.newUser(theUid, user.getUsername());
-        UserPortrait userPortrait = new UserPortrait(theUid);
-        userService.newUserPortrait(userPortrait);
-        redisUtil.set("ClearExtraStatus|" + userPortrait.getUid(), "ONE YEAR", 60 * 60 * 24 * 365);
-        return JSON.toJSONString(Result.success("RegisterSuccess"));
-    }
     @RequestMapping(value = "/loginSuccess", produces = "text/plain;charset=UTF-8")
     public String isLogin(Model model) throws Exception
     {
@@ -207,27 +210,43 @@ public class UserController
         return JSON.toJSONString(Result.error("密码不匹配或是已被封号", 400));
     }
 
-    //Spring Security获取当前用会话的户信息
-    public static String getCurrentUsername()
+    @PostMapping(value = "/Register", produces = "text/html;charset=UTF-8")
+    public String register(User user) throws Exception
     {
-        String username = "";
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        Object principal=authentication.getPrincipal();
-        if(principal==null){
-            return null;
+        //说回来要是有人破解了链接给我服务器扔冲蝗核弹咋办 springboot有防御措施吗...
+        if (user == null) return JSON.toJSONString(Result.error("无数据"));
+        System.out.println(user);
+        if (user.getUsername().length() >= 15 || user.getPassword().length() >= 30)
+        {
+            return JSON.toJSONString(Result.error("想扔内存核弹？"));
         }
-        if(principal instanceof UserDetails){
-            UserDetails userDetails=(UserDetails) principal;
-            username=userDetails.getUsername();
+        System.out.println("取得注册用数据，开始向数据库中写入数据...");
+        if (userService.getUser(user.getUsername()) != null)
+        {
+            System.out.println("用户名已存在，请重试");
+            return JSON.toJSONString(Result.error("用户名已存在", 500));
         }
-        else{
-            username=principal.toString();//????
+        user.setStatus(100);
+        user.setRole("user");
+        if (user.getNickName() == null || "".equals(user.getNickName()))
+        {
+            user.setNickName(user.getUsername());
         }
-        return username;
+        user.setPassword(bCryptPasswordEncoder.encode(user.getPassword()));//换用Bcrypt，自动加盐真香
+        user.setEvaluation(2);
+        userService.saveUser(user);
+        //int theUid = userService.newestUid();
+        userTokenService.newUser(user.getUid(), user.getUsername());
+        UserPortrait userPortrait = new UserPortrait(user.getUid());
+        userService.newUserPortrait(userPortrait);
+        redisUtil.set("ClearExtraStatus|" + userPortrait.getUid(), "ONE YEAR", 60 * 60 * 24 * 365);
+        return JSON.toJSONString(Result.success("RegisterSuccess"));
     }
-    @RequestMapping(value = "loginOut",produces = "application/json;charset=UTF-8")
-    public String LoginOut(SessionStatus status)throws Exception{
-       // status.setComplete();//将session重置
+
+    @RequestMapping(value = "loginOut", produces = "application/json;charset=UTF-8")
+    public String LoginOut(SessionStatus status) throws Exception
+    {
+        // status.setComplete();//将session重置
         return JSON.toJSONString(Result.success("loginOutSuccess"));
     }
 
@@ -290,17 +309,30 @@ public class UserController
             e.printStackTrace();
             return JSON.toJSONString(Result.error("没有设置邮箱，联系客服找回", 404));
         }
-        if (userTokenService.getMailCode(username) != null && ("2").equals(userTokenService.getTemp(username)))
+        if (redisUtil.exists("MailCode|" + username))
         {
-            return JSON.toJSONString(Result.error("发过两次了，如果没收到联系管理员", 404));
-        } else if (("1").equals(userTokenService.getTemp(username)))
-        {
-            userTokenService.saveMailCode(username, theCode, "2");
+            ArrayList<String> data = redisUtil.get("MailCode|" + username, ArrayList.class);
+            if (data.get(0) == "1")
+            {
+                redisUtil.delete("MailCode" + username);
+                data.set(0, "2");
+                redisUtil.set("MailCode|" + username, data, 6 * 60 * 60);
+            } else
+            {
+                return JSON.toJSONString(Result.error("发过两次了不能再发（其实是懒），如果没收到联系管理员", 404));
+            }
+            //userTokenService.getMailCode(username) != null && ("2").equals(userTokenService.getTemp(username))
+            return JSON.toJSONString(Result.success("已经发送两次了！请到邮箱查看邮件"));
         } else
         {
-            userTokenService.saveMailCode(username, theCode, "1");
+            ArrayList<String> data = new ArrayList<>();
+            data.add("1");
+            data.add(theCode);
+            //userTokenService.saveMailCode(username, theCode, "1");
+            redisUtil.set("MailCode|" + username, data, 2 * 60 * 60);
         }
-        mailService.sendResetPw(mailAddr, username + "的请求码(六位字符）:" + theCode);
+        //mailService.sendResetPw(mailAddr, username + "的请求码(六位字符）:" + theCode);
+        System.out.println(theCode);
         return JSON.toJSONString(Result.success("请到邮箱查看邮件"));
     }
 
@@ -309,16 +341,25 @@ public class UserController
     {
         Result res;
         if (username == null) return JSON.toJSONString("EMPTY USERNAME");
-        String trueCode = userTokenService.getMailCode(username);
-        if (trueCode.equals(mailCode))
+        try
         {
-            userService.editPassword(userService.getUser(username).getUid(), bCryptPasswordEncoder.encode(newPassword));
-            userTokenService.saveMailCode(username, "", "");
-            //我为什么要这么脑残的去用UID呢？？？？？？？？？？？？？？？？？？？？？？？？
-            res = Result.success("confirmSuccess");
-        } else
+
+
+            ArrayList<String> data = redisUtil.get("MailCode|" + username, ArrayList.class);
+            if (data.get(1).equals(mailCode))
+            {
+                userService.editPassword(userService.getUser(username).getUid(), bCryptPasswordEncoder.encode(newPassword));
+                //userTokenService.saveMailCode(username, "", "");
+                //我为什么要这么脑残的去用UID呢？？？？？？？？？？？？？？？？？？？？？？？？
+                res = Result.success("confirmSuccess");
+                redisUtil.delete("MailCode|" + username);
+            } else
+            {
+                res = Result.error("Incorrect code", 400);
+            }
+        } catch (NullPointerException e)
         {
-            res = Result.error("Incorrect code", 400);
+            res = Result.error("似乎验证码过期了或者不存在,请重新发送邮件试试", 404);
         }
         return JSON.toJSONString(res);
     }
@@ -408,5 +449,12 @@ public class UserController
         user.setNickName(nickName);
         userService.setNickName(user);
         return JSON.toJSONString(Result.success("修改成功", userService.getUser(uid)));
+    }
+
+    @PostMapping(value = "/getUserMessages", produces = "application/json;charset=UTF-8")
+    public String getMessage(HttpServletRequest request)
+    {
+        int uid = jwtTokenUtil.getUidFromToken(request.getHeader("token"));
+        return redisUtil.getUserMessage(uid);
     }
 }

@@ -2,7 +2,7 @@ package com.jessie.SHMarket.entity;
 
 import java.io.Serializable;
 
-public class Goods_More extends Goods implements Serializable
+public class Goods_Extended extends Goods implements Serializable
 {
     private int sellerEva;
     private String nickName;

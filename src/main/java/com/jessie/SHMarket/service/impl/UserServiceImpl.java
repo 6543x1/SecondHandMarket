@@ -26,6 +26,12 @@ public class UserServiceImpl implements UserService
         userDAO.saveUser(user);
     }
 
+    @Override
+    public int getUid(String username)
+    {
+        return userDAO.getUid(username);
+    }
+
     public static boolean testJWCHPost(String No, String Password)
     {
         int code = 200;

@@ -2,6 +2,7 @@ package com.jessie.SHMarket.service.impl;
 
 import com.jessie.SHMarket.dao.OrderDAO;
 import com.jessie.SHMarket.entity.Order;
+import com.jessie.SHMarket.entity.OrderWithGoods;
 import com.jessie.SHMarket.service.OrderService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -59,5 +60,17 @@ public class OrderServiceImpl implements OrderService
     public int newestOrder()
     {
         return orderDAO.newestOrder();
+    }
+
+    @Override
+    public List<OrderWithGoods> getSellerOrderWithGoods(int uid)
+    {
+        return orderDAO.getSellerOrderWithGoods(uid);
+    }
+
+    @Override
+    public List<OrderWithGoods> getBuyerOrderWithGoods(int uid)
+    {
+        return orderDAO.getBuyerOrderAndGoods(uid);
     }
 }

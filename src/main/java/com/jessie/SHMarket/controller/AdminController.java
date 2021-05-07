@@ -1,13 +1,12 @@
 package com.jessie.SHMarket.controller;
 
+import com.alibaba.fastjson.JSON;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.pagehelper.PageHelper;
 import com.github.pagehelper.PageInfo;
 import com.jessie.SHMarket.configuration.JwtTokenUtil;
-import com.jessie.SHMarket.entity.AdminOperation;
-import com.jessie.SHMarket.entity.Goods;
-import com.jessie.SHMarket.entity.Result;
-import com.jessie.SHMarket.entity.User;
+import com.jessie.SHMarket.configuration.RedisUtil;
+import com.jessie.SHMarket.entity.*;
 import com.jessie.SHMarket.service.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
@@ -40,6 +39,10 @@ public class AdminController
     JwtTokenUtil jwtTokenUtil;
     @Autowired
     private AdminOperationService adminOperationService;
+    @Autowired
+    RedisUtil redisUtil;
+    @Autowired
+    GoodsReportService goodsReportService;
 
     @PostMapping(value = "/testAdminController", produces = "application/json;charset=UTF-8")
     public String testAdmin() throws Exception
@@ -51,18 +54,18 @@ public class AdminController
     public String deleteOrderTruly(int oid, String reason, HttpServletRequest request) throws Exception
     {
         String token = request.getHeader("token");
-        int uid = jwtTokenUtil.getUidFromToken(token);
+        int operator = jwtTokenUtil.getUidFromToken(token);
         orderService.deleteOrder(oid);
-        adminOperationService.newOperation(new AdminOperation(uid, "删除订单", 0, oid, LocalDateTime.now(), reason));
+        adminOperationService.newOperation(new AdminOperation(operator, "删除订单", 0, oid, LocalDateTime.now(), reason));
         return objectMapper.writeValueAsString(Result.success("订单已彻底删除"));
     }
 
     @PostMapping(value = "/getUncheckedGoods", produces = "application/json;charset=UTF-8")
-    public PageInfo<Goods> getGoods(@RequestParam(value = "pageNum", defaultValue = "1") int pageNum, HttpServletRequest request)
+    public PageInfo<Goods_Extended> getGoods(@RequestParam(value = "pageNum", defaultValue = "1") int pageNum, HttpServletRequest request)
     {
         PageHelper.startPage(pageNum, 10);
-        List<Goods> list = goodsService.getUncheckedGoods();
-        return new PageInfo<>(list);
+        List<Goods_Extended> list = goodsService.getUncheckedGoods();
+        return new PageInfo<Goods_Extended>(list);
     }
 
     @PostMapping(value = "/deleteGoods", produces = "application/json;charset=UTF-8")
@@ -70,9 +73,10 @@ public class AdminController
     {
         //前端要单独做一个页面给管理员用，不然误调用方法不好恢复
         String token = request.getHeader("token");
-        int uid = jwtTokenUtil.getUidFromToken(token);
+        int operator = jwtTokenUtil.getUidFromToken(token);
         goodsService.deleteGoods(gid);
-        adminOperationService.newOperation(new AdminOperation(uid, "删除不合格商品", goodsService.getGoods(gid).getUid(), gid, LocalDateTime.now(), reason));
+        adminOperationService.newOperation(new AdminOperation(operator, "删除不合格商品", goodsService.getGoods(gid).getUid(), gid, LocalDateTime.now(), reason));
+        redisUtil.saveUserMessage(goodsService.getUid(gid), new UserMessage("你的一个商品" + "#{" + gid + "}" + "未能通过审核", "审核消息", LocalDateTime.now()));
         return objectMapper.writeValueAsString(Result.success("不合格商品已删除"));
     }
 
@@ -83,8 +87,9 @@ public class AdminController
         String token = request.getHeader("token");
         int uid = jwtTokenUtil.getUidFromToken(token);
         goodsService.updateGoods(1, gid);
-        int target = goodsService.getGoods(gid).getUid();
+        int target = goodsService.getUid(gid);
         adminOperationService.newOperation(new AdminOperation(uid, "通过合格商品", target, gid, LocalDateTime.now(), "PASS"));
+        redisUtil.saveUserMessage(target, new UserMessage("你的一个商品" + "#{" + gid + "}" + "已经通过审核了", "审核消息", LocalDateTime.now()));
         mailService.newMessage("你的一个商品已经通过审核了", userService.getMailAddr(target), "你的商品通过审核了，快去APP里看看吧~");
         return objectMapper.writeValueAsString(Result.success("商品通过审核"));
     }
@@ -109,6 +114,7 @@ public class AdminController
             return objectMapper.writeValueAsString(Result.success("封号成功"));
         } else
         {
+            redisUtil.saveUserMessage(uid, new UserMessage("管理员扣除了你的信誉分" + "#{" + score + "}" + "分，有疑问联系管理员", "信誉分消息", LocalDateTime.now()));
             mailService.newMessage(user.getUsername() + ",管理员操作了你的信誉分", user.getMailAddr(), "你号被扣了" + score + "，详情联系客服");
             userService.plusStatus(uid, -score);
         }
@@ -156,4 +162,29 @@ public class AdminController
         List<AdminOperation> list = adminOperationService.getOperationsByType(operation);
         return new PageInfo<AdminOperation>(list);
     }
+
+    @PostMapping(value = "/getReports", produces = "application/json;charset=UTF-8")
+    public PageInfo<GoodsReport> getReports(@RequestParam(defaultValue = "false") boolean solved, @RequestParam(value = "pageNum", defaultValue = "1") int pageNum, HttpServletRequest request)
+    {
+        PageHelper.startPage(pageNum, 10);
+        List<GoodsReport> list;
+        if (solved)
+        {
+            list = goodsReportService.getUnSolvedReports();
+        } else
+        {
+            list = goodsReportService.getSolvedReports();
+        }
+        return new PageInfo<GoodsReport>(list);
+    }
+
+    @PostMapping(value = "/solveReports", produces = "application/json;charset=UTF-8")
+    public String solveReport(int reportId, String result, HttpServletRequest request)
+    {
+        goodsReportService.finishReport(reportId, result, LocalDateTime.now());//时间还没写
+        mailService.newMessage("你的举报进度有更新", userService.getMailAddr(goodsReportService.getReporter(reportId)), result);
+        redisUtil.saveUserMessage(goodsReportService.getReporter(reportId), new UserMessage("你的举报#{" + reportId + "}结果处理如下" + result, "举报消息", LocalDateTime.now()));
+        return JSON.toJSONString(Result.success("处理成功"));
+    }
+
 }

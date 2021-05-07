@@ -1,6 +1,7 @@
 package com.jessie.SHMarket.service;
 
 import com.jessie.SHMarket.entity.Order;
+import com.jessie.SHMarket.entity.OrderWithGoods;
 
 import java.util.List;
 
@@ -21,4 +22,8 @@ public interface OrderService
     int newestOrder();
 
     void expireOrder(int oid);
+
+    List<OrderWithGoods> getBuyerOrderWithGoods(int uid);
+
+    List<OrderWithGoods> getSellerOrderWithGoods(int uid);
 }

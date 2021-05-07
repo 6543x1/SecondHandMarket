@@ -1,13 +1,11 @@
 package com.jessie.SHMarket.controller;
 
 import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.JSONArray;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.jessie.SHMarket.configuration.RedisUtil;
 import com.jessie.SHMarket.entity.*;
-import com.jessie.SHMarket.service.GoodsService;
-import com.jessie.SHMarket.service.MailService;
-import com.jessie.SHMarket.service.PermissionService;
-import com.jessie.SHMarket.service.UserService;
+import com.jessie.SHMarket.service.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.ui.Model;
@@ -41,6 +39,8 @@ public class TestController
     private PermissionService permissionService;
     @Autowired
     RedisUtil redisUtil;
+    @Autowired
+    private OrderService orderService;
     @Autowired
     GoodsService goodsService;
 
@@ -121,8 +121,8 @@ public class TestController
         {
             System.out.println(goodsAndSeller.toString());
         }
-        Goods_More goods_more = goodsService.getGoodsFull(1);
-        System.out.println(goods_more.toString());
+        Goods_Extended goods_extended = goodsService.getGoodsFull(1);
+        System.out.println(goods_extended.toString());
         return JSON.toJSONString(list);
     }
 
@@ -131,4 +131,28 @@ public class TestController
     {
         return JSON.toJSONString(goodsService.newestGoods());
     }
+
+    @GetMapping(value = "testRedisSaveMap", produces = "application/json;charset=UTF-8")
+    public String testRedisSaveMap()
+    {
+
+        redisUtil.set("mailCode", 8);
+        return null;
+    }
+
+    @GetMapping(value = "testOrderWithGoods", produces = "application/json;charset=UTF-8")
+    public String testOrderWithGoods()
+    {
+        List<OrderWithGoods> list = orderService.getBuyerOrderWithGoods(2);
+        System.out.println(list);
+        return JSONArray.toJSONString(list);
+    }
+
+    @GetMapping(value = "testRecommendGoods", produces = "application/json;charset=UTF-8")
+    public String testRecommend(String key)
+    {
+        Goods_Extended goods_extended = goodsService.getRecommendGoods(key);
+        return JSON.toJSONString(goods_extended);
+    }
+
 }

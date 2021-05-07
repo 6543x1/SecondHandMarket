@@ -2,7 +2,7 @@ package com.jessie.SHMarket.dao;
 
 import com.jessie.SHMarket.entity.Goods;
 import com.jessie.SHMarket.entity.GoodsAndSeller;
-import com.jessie.SHMarket.entity.Goods_More;
+import com.jessie.SHMarket.entity.Goods_Extended;
 import org.apache.ibatis.annotations.*;
 import org.apache.ibatis.mapping.FetchType;
 import org.springframework.stereotype.Repository;
@@ -31,7 +31,7 @@ public interface GoodsDAO
             @Result(property = "sellerEva", column = "evaluation"),
             @Result(property = "nickName", column = "nickName")
     })
-    List<Goods_More> queryGoods();
+    List<Goods_Extended> queryGoods();
 
     @Select("select * from goods where uid=#{uid} and status>=1")
     List<Goods> getUserGoods(int uid);
@@ -39,8 +39,9 @@ public interface GoodsDAO
     @Select("select * from goods where uid=#{uid}")
     List<Goods> getOwnGoods(int uid);
 
-    @Select("select * from goods where status=0")
-    List<Goods> getUncheckedGoods();
+    @Select("select g.*,u.evaluation,u.nickName from goods g join user u on u.uid = g.uid where g.status=0")
+    @ResultMap(value = "Goods_More_Map")
+    List<Goods_Extended> getUncheckedGoods();
 
     @Update("update goods set status=#{status} where gid =#{gid}")
     void updateGoods(@Param("status") int status, @Param("gid") int gid);
@@ -51,7 +52,15 @@ public interface GoodsDAO
 
     @Select("select t1.*,u.evaluation,u.nickName from goods t1 join user u on t1.uid = u.uid where match(t1.description) against(#{keyValue}) and t1.status=1 order by u.evaluation")
     @ResultMap(value = "Goods_More_Map")
-    List<Goods_More> search(String keyValue);//默认为自然语言
+    List<Goods_Extended> search(String keyValue);//默认为自然语言
+
+    @Select("select t1.*,u.evaluation,u.nickName from goods t1 join user u on t1.uid = u.uid where match(t1.description) against(#{keyValue}) and t1.status=1 order by t1.uploadTime desc")
+    @ResultMap(value = "Goods_More_Map")
+    List<Goods_Extended> searchOrderByTime(String keyValue);
+
+    @Select("select t1.*,u.evaluation,u.nickName from goods t1 join user u on t1.uid = u.uid where match(t1.description) against(#{keyValue}) and t1.status=1 order by t1.price")
+    @ResultMap(value = "Goods_More_Map")
+    List<Goods_Extended> searchOrderByPrice(String keyValue);
 
     @Select("select count(*) from goods where to_days(uploadTime) = to_days(now()) and uid=#{uid}")
     int queryTodayGoods(int uid);
@@ -77,7 +86,13 @@ public interface GoodsDAO
 
     @Select("select g.*,u.evaluation,u.nickName from goods g,user u where g.gid=#{gid} and g.uid=u.uid;")
     @ResultMap("Goods_More_Map")
-    Goods_More getGoodsFull(int gid);
+    Goods_Extended getGoodsFull(int gid);
+
     //select t1.* from goods t1 join `user` t2 on t1.uid = t2.uid where match(t1.description) against('+华为 -小米' in boolean mode)  order by t2.status desc
     //我发现，如果把结果按信誉分来排名，这样好像会造成比较复杂的结果
+    @Select("SELECT t1.*,u.evaluation,u.nickName FROM goods as t1 join user u on u.uid = t1.uid where t1.gid>=(RAND()*((SELECT MAX(gid) FROM \n" +
+            "goods)-(SELECT MIN(gid) FROM goods))+(SELECT MIN(gid) FROM goods)) and label =#{key} LIMIT 1;")
+    @ResultMap("Goods_More_Map")
+    Goods_Extended getRecommendGoods(String key);
+
 }

@@ -1,5 +1,8 @@
 package com.jessie.SHMarket.entity;
 
+import com.alibaba.fastjson.annotation.JSONField;
+import com.alibaba.fastjson.serializer.SerializerFeature;
+
 import java.io.Serializable;
 
 public class User implements Serializable
@@ -99,6 +102,7 @@ public class User implements Serializable
         this.mailAddr = mailAddr;
     }
 
+    @JSONField(serialzeFeatures = SerializerFeature.WriteNullStringAsEmpty)//为啥BEAN里的没用？？？
     public String getNickName()
     {
         return nickName;

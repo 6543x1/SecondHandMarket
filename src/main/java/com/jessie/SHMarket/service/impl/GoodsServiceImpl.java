@@ -3,7 +3,7 @@ package com.jessie.SHMarket.service.impl;
 import com.jessie.SHMarket.dao.GoodsDAO;
 import com.jessie.SHMarket.entity.Goods;
 import com.jessie.SHMarket.entity.GoodsAndSeller;
-import com.jessie.SHMarket.entity.Goods_More;
+import com.jessie.SHMarket.entity.Goods_Extended;
 import com.jessie.SHMarket.service.GoodsService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -20,6 +20,12 @@ public class GoodsServiceImpl implements GoodsService
     public int saveGoods(Goods goods)
     {
         return goodsDAO.saveGoods(goods);
+    }
+
+    @Override
+    public Goods_Extended getRecommendGoods(String key)
+    {
+        return goodsDAO.getRecommendGoods(key);
     }
 
     @Override
@@ -41,7 +47,7 @@ public class GoodsServiceImpl implements GoodsService
     }
 
     @Override
-    public List<Goods_More> queryGoods()
+    public List<Goods_Extended> queryGoods()
     {
         return goodsDAO.queryGoods();
     }
@@ -56,7 +62,7 @@ public class GoodsServiceImpl implements GoodsService
     }
 
     @Override
-    public List<Goods> getUncheckedGoods()
+    public List<Goods_Extended> getUncheckedGoods()
     {
         return goodsDAO.getUncheckedGoods();
     }
@@ -74,9 +80,18 @@ public class GoodsServiceImpl implements GoodsService
     }
 
     @Override
-    public List<Goods_More> search(String keyValue)
+    public List<Goods_Extended> search(String keyValue, String type)
     {
-        return goodsDAO.search(keyValue);
+        if ("time".equals(type))
+        {
+            return goodsDAO.searchOrderByTime(keyValue);
+        } else if ("price".equals(type))
+        {
+            return goodsDAO.searchOrderByPrice(keyValue);
+        } else
+        {
+            return goodsDAO.search(keyValue);
+        }
     }
 
     @Override
@@ -110,7 +125,7 @@ public class GoodsServiceImpl implements GoodsService
     }
 
     @Override
-    public Goods_More getGoodsFull(int gid)
+    public Goods_Extended getGoodsFull(int gid)
     {
         return goodsDAO.getGoodsFull(gid);
     }

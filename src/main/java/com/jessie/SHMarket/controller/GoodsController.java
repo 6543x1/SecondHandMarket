@@ -1,24 +1,23 @@
 package com.jessie.SHMarket.controller;
 
 import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.github.pagehelper.PageHelper;
 import com.github.pagehelper.PageInfo;
 import com.jessie.SHMarket.configuration.JwtTokenUtil;
+import com.jessie.SHMarket.configuration.RedisUtil;
 import com.jessie.SHMarket.dao.Goods_commentDAO;
-import com.jessie.SHMarket.entity.Goods;
-import com.jessie.SHMarket.entity.GoodsComment;
-import com.jessie.SHMarket.entity.Goods_More;
-import com.jessie.SHMarket.entity.Result;
-import com.jessie.SHMarket.service.GoodsService;
-import com.jessie.SHMarket.service.MailService;
-import com.jessie.SHMarket.service.UserService;
+import com.jessie.SHMarket.entity.*;
+import com.jessie.SHMarket.service.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpServletRequest;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -36,22 +35,29 @@ public class GoodsController
     @Autowired
     Map<Integer, String> theNewMap;
     @Autowired
-    Goods_commentDAO goods_commentDAO;//不写中间那一坨接口了..
+    Goods_commentDAO goods_commentDAO;//不写中间那一坨接口了,反正这个功能也被砍了23333..。
     @Autowired
     UserService userService;
+    @Autowired
+    OrderService orderService;
+    @Autowired
+    RedisUtil redisUtil;
+    @Autowired
+    GoodsReportService goodsReportService;
 
     @PreAuthorize("hasAnyAuthority('admin','user')")
     @PostMapping(value = "/newGoods", produces = "application/json;charset=UTF-8")
     public String newGoods(Goods goods, HttpServletRequest request) throws Exception
     {
         System.out.println("收到商品信息");
-        if (goods.getPrice() > 99999)
+        if (goods.getPrice() < 0 || goods.getPrice() > 99999)
         {
-            return JSON.toJSONString(Result.error("不允许价格超过99999"));
+            return JSON.toJSONString(Result.error("不允许价格超过99999或为负数"));
         }
+        goods.setPrice((int) (goods.getPrice() * 100) / 100.0);
         String token = request.getHeader("token");
         int uid = jwtTokenUtil.getUidFromToken(token);
-        if (goodsService.queryTodayGoods(uid) > 3)
+        if (goodsService.queryTodayGoods(uid) > 300)
         {
             return JSON.toJSONString(Result.error("每天最多上传3个商品"));
         }
@@ -59,8 +65,15 @@ public class GoodsController
         goods.setUploadTime(LocalDateTime.now());
         goods.setUid(uid);
         //goods.setNickName(userService.getNickName(uid));
-        int theGid = goodsService.saveGoods(goods);
-        System.out.println(goods.getGid());
+        try
+        {
+            goodsService.saveGoods(goods);
+        } catch (Exception e)
+        {
+            e.printStackTrace();
+            return JSONObject.toJSONString(Result.error("请前端看下是不是参数写错了或者没写"));
+        }
+        //System.out.println(goods.getGid());
         return JSONObject.toJSONString(Result.success("商品信息设置成功", goodsService.getGoods(goods.getGid())));
     }
 
@@ -68,9 +81,14 @@ public class GoodsController
     @PostMapping(value = "/deleteGoods", produces = "application/json;charset=UTF-8")
     public String deleteGoods(int gid, HttpServletRequest request) throws Exception
     {
-        if (goodsService.getUid(gid) != jwtTokenUtil.getUidFromToken(request.getHeader("token")))
+        Goods goods = goodsService.getGoods(gid);
+        if (goods.getUid() != jwtTokenUtil.getUidFromToken(request.getHeader("token")))
         {
             return JSON.toJSONString(Result.error("非本人商品", 403));
+        }
+        if (goods.getStatus() != 1 && orderService.getOrderByGid(gid).getStatus() != 11)
+        {
+            return JSON.toJSONString(Result.error("已卖出的商品但未完成交易或异常的商品不可删除", 403));
         }
         goodsService.deleteGoods(gid);
         return JSONObject.toJSONString(Result.success("商品信息设置成功", goodsService.newestGoods()));
@@ -80,6 +98,10 @@ public class GoodsController
     @PostMapping(value = "/editGoods", produces = "application/json;charset=UTF-8")
     public String editGoods(Goods goods, HttpServletRequest request) throws Exception
     {
+        if (goods.getPrice() < 0 || goods.getPrice() > 99999)
+        {
+            return JSON.toJSONString(Result.error("不允许价格超过99999或为负数"));
+        }
         if (goodsService.getUid(goods.getGid()) != jwtTokenUtil.getUidFromToken(request.getHeader("token")))
         {
             return JSON.toJSONString(Result.error("非本人商品，禁止操作", 403));
@@ -92,7 +114,7 @@ public class GoodsController
     public PageInfo getGoods(@RequestParam(value = "pageNum", defaultValue = "1") int pageNum)
     {
         PageHelper.startPage(pageNum, 10);
-        List<Goods_More> list = goodsService.queryGoods();
+        List<Goods_Extended> list = goodsService.queryGoods();
         return new PageInfo<>(list);
     }
 
@@ -110,13 +132,42 @@ public class GoodsController
         }
         return new PageInfo<>(list);
     }
+
     @RequestMapping(value = "/searchGoods", produces = "application/json;charset=UTF-8")
     public PageInfo searchGoods(@RequestParam(value = "pageNum", defaultValue = "1") int pageNum,
-                                @RequestParam(value = "keyValue") String keyValue)
+                                @RequestParam(value = "keyValue") String keyValue,
+                                @RequestParam(value = "keyValue", defaultValue = "default") String type, HttpServletRequest request)
     {
+        System.out.println("KEY=" + keyValue);
         PageHelper.startPage(pageNum, 10);
-        List<Goods_More> list = goodsService.search(keyValue);
+        List<Goods_Extended> list = goodsService.search(keyValue, type);
+        if (request.getHeader("token") != null && !"".equals(request.getHeader("token")))
+        {
+            int uid = jwtTokenUtil.getUidFromToken(request.getHeader("token"));
+            redisUtil.saveUserHistoryKey(uid, list.get(0).getLabel());
+        }
         return new PageInfo<>(list);
+    }
+
+    @PreAuthorize("hasAnyAuthority('admin','user')")
+    @RequestMapping(value = "/recommend", produces = "application/json;charset=UTF-8")
+    public String recommend(@RequestParam(value = "pageNum", defaultValue = "1") int pageNum, HttpServletRequest request)
+    {
+        int uid = jwtTokenUtil.getUidFromToken(request.getHeader("token"));
+        LinkedHashMap<String, String> hashMap = redisUtil.getUserHistoryKey(uid);
+        if (hashMap == null)
+        {
+            return null;
+        } else
+        {
+            ArrayList<Goods_Extended> list = new ArrayList<>();
+            for (String target : hashMap.values())
+            {
+                list.add(goodsService.getRecommendGoods(target));
+            }
+            return JSONArray.toJSONString(list);
+        }
+
     }
 
     @RequestMapping(value = "/getMaps", produces = "application/json;charset=UTF-8")
@@ -187,5 +238,35 @@ public class GoodsController
         List<GoodsComment> list = goods_commentDAO.getComments(gid);
         return new PageInfo<>(list);
     }
+
+    @PreAuthorize("hasAnyAuthority('admin','user')")
+    @PostMapping(value = "/report", produces = "application/json;charset=UTF-8")
+    public String report(int gid, String reason, HttpServletRequest request)
+    {
+        int uid = jwtTokenUtil.getUidFromToken(request.getHeader("token"));
+        GoodsReport goodsReport = new GoodsReport(uid, gid, reason, 0, 0, "", LocalDateTime.now(), "");
+        try
+        {
+            goodsReportService.newReport(goodsReport);
+        } catch (Exception e)
+        {
+            return JSON.toJSONString(Result.error("发生错误,举报失败"));
+        }
+
+        return JSON.toJSONString(Result.success("举报成功", goodsReport));
+    }
+
+    @PreAuthorize("hasAnyAuthority('admin','user')")
+    @PostMapping(value = "/getReport", produces = "application/json;charset=UTF-8")
+    public String getReport(int reportId, HttpServletRequest request)
+    {
+        int uid = jwtTokenUtil.getUidFromToken(request.getHeader("token"));
+        if (goodsReportService.getReporter(reportId) != uid)
+        {
+            return JSON.toJSONString(Result.error("非本人举报", 403));
+        }
+        return JSON.toJSONString(goodsReportService.getReport(reportId));
+    }
+
 
 }

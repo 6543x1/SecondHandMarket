@@ -19,125 +19,135 @@ public class Order implements Serializable
     private LocalDateTime deliveryTime;
     private int cid;
     private String location;
-  private int gid;
+    private int gid;
 
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss", timezone = "GMT+8")
     @JSONField(format = "yyyy-MM-dd HH:mm:ss")
-  public LocalDateTime getGeneratedTime()
-  {
-    return generatedTime;
-  }
+    public LocalDateTime getGeneratedTime()
+    {
+        return generatedTime;
+    }
 
-  public void setGeneratedTime(LocalDateTime generatedTime)
-  {
-    this.generatedTime = generatedTime;
-  }
-
-    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss", timezone = "GMT+8")
-    @JSONField(format = "yyyy-MM-dd HH:mm:ss")
-  public LocalDateTime getDoneTime()
-  {
-    return doneTime;
-  }
-
-  public void setDoneTime(LocalDateTime doneTime)
-  {
-    this.doneTime = doneTime;
-  }
+    public void setGeneratedTime(LocalDateTime generatedTime)
+    {
+        this.generatedTime = generatedTime;
+    }
 
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss", timezone = "GMT+8")
     @JSONField(format = "yyyy-MM-dd HH:mm:ss")
-  public LocalDateTime getDeliveryTime()
-  {
-    return deliveryTime;
-  }
+    public LocalDateTime getDoneTime()
+    {
+        return doneTime;
+    }
 
-  public void setDeliveryTime(LocalDateTime deliveryTime)
-  {
-    this.deliveryTime = deliveryTime;
-  }
+    public void setDoneTime(LocalDateTime doneTime)
+    {
+        this.doneTime = doneTime;
+    }
 
-  @Override
-  public String toString()
-  {
-    return "Order{" +
-            "oid=" + oid +
-            ", generatedTime=" + generatedTime +
-            ", status=" + status +
-            ", buyer=" + buyer +
-            ", seller=" + seller +
-            ", doneTime=" + doneTime +
-            ", deliveryTime=" + deliveryTime +
-            ", cid=" + cid +
-            ", location='" + location + '\'' +
-            ", gid=" + gid +
-            '}';
-  }
+    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss", timezone = "GMT+8")
+    @JSONField(format = "yyyy-MM-dd HH:mm:ss")
+    public LocalDateTime getDeliveryTime()
+    {
+        return deliveryTime;
+    }
 
-  public int getOid() {
-    return oid;
-  }
+    public void setDeliveryTime(LocalDateTime deliveryTime)
+    {
+        this.deliveryTime = deliveryTime;
+    }
 
-  public void setOid(int oid) {
-    this.oid = oid;
-  }
+    @Override
+    public String toString()
+    {
+        return "Order{" +
+                "oid=" + oid +
+                ", generatedTime=" + generatedTime +
+                ", status=" + status +
+                ", buyer=" + buyer +
+                ", seller=" + seller +
+                ", doneTime=" + doneTime +
+                ", deliveryTime=" + deliveryTime +
+                ", cid=" + cid +
+                ", location='" + location + '\'' +
+                ", gid=" + gid +
+                '}';
+    }
 
+    public int getOid()
+    {
+        return oid;
+    }
 
-
-
-  public int getStatus() {
-    return status;
-  }
-
-  public void setStatus(int status) {
-    this.status = status;
-  }
-
-
-  public int getBuyer() {
-    return buyer;
-  }
-
-  public void setBuyer(int buyer) {
-    this.buyer = buyer;
-  }
+    public void setOid(int oid)
+    {
+        this.oid = oid;
+    }
 
 
-  public int getSeller() {
-    return seller;
-  }
+    public int getStatus()
+    {
+        return status;
+    }
 
-  public void setSeller(int seller) {
-    this.seller = seller;
-  }
-
-
-
-
-  public int getCid() {
-    return cid;
-  }
-
-  public void setCid(int cid) {
-    this.cid = cid;
-  }
+    public void setStatus(int status)
+    {
+        this.status = status;
+    }
 
 
-  public String getLocation() {
-    return location;
-  }
+    public int getBuyer()
+    {
+        return buyer;
+    }
 
-  public void setLocation(String location) {
-    this.location = location;
-  }
+    public void setBuyer(int buyer)
+    {
+        this.buyer = buyer;
+    }
 
 
-  public int getGid() {
-    return gid;
-  }
+    public int getSeller()
+    {
+        return seller;
+    }
 
-  public void setGid(int gid) {
-    this.gid = gid;
-  }
+    public void setSeller(int seller)
+    {
+        this.seller = seller;
+    }
+
+
+    public int getCid()
+    {
+        return cid;
+    }
+
+    public void setCid(int cid)
+    {
+        this.cid = cid;
+    }
+
+
+    public String getLocation()
+    {
+        return location;
+    }
+
+    public void setLocation(String location)
+    {
+        this.location = location;
+    }
+
+
+    public int getGid()
+    {
+        return gid;
+    }
+
+    public void setGid(int gid)
+    {
+        this.gid = gid;
+    }
 
 }

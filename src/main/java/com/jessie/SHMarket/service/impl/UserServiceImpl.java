@@ -180,19 +180,31 @@ public class UserServiceImpl implements UserService
     }
 
     @Override
+    public String getImgPath(int uid)
+    {
+        return userDAO.getImgPathByUid(uid);
+    }
+
+    @Override
+    public int getStatus(int uid)
+    {
+        return userDAO.getStatus(uid);
+    }
+
+    @Override
     public int calculateEvaluation(int status)
     {
         int evaluation = 0;
         if (status >= 105)
         {
             evaluation = 1;
-        } else if (status >= 70 && status < 105)
+        } else if (status >= 70)
         {
             evaluation = 2;
-        } else if (status >= 40 && status < 70)
+        } else if (status >= 40)
         {
             evaluation = 3;
-        } else if (status < 60)
+        } else if (status < 40)
         {
             evaluation = 4;
         }

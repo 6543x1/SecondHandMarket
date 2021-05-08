@@ -14,7 +14,7 @@ spring:
   mail:
     host: smtp.office365.com
     username: 6543x1@outlook.com
-    password: bugaoshuni
+    password: 123456cnm
     properties:
       mail:
         smtp:

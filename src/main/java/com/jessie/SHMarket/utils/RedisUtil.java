@@ -1,4 +1,4 @@
-package com.jessie.SHMarket.configuration;
+package com.jessie.SHMarket.utils;
 
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;

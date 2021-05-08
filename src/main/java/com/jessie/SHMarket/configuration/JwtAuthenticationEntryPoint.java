@@ -30,7 +30,6 @@ public class JwtAuthenticationEntryPoint implements AuthenticationEntryPoint, Se
         pw.print(JSONObject.toJSON(Result.error("未登录被拒绝", 401)));
         pw.flush();
         pw.close();
-        //pw.flush();
-        System.out.println("JwtAuthenticationEntryPoint 生效");
+       // System.out.println("JwtAuthenticationEntryPoint 生效");
     }
 }

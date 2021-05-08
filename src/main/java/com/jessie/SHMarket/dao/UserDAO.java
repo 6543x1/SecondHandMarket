@@ -36,6 +36,9 @@ public interface UserDAO
     @Select("select mailAddr from user where uid=#{uid}")
     String getMailAddrByUid(int uid);
 
+    @Select("select img_path from user where uid=#{uid}")
+    String getImgPathByUid(int uid);
+
     @Select("select * from user where uid= #{uid}")
     User getUserByUid(int uid);//方法重载会报错。。。
 

@@ -15,12 +15,13 @@ public interface GoodsReportDAO
     @Options(useGeneratedKeys = true, keyProperty = "reportId", keyColumn = "reportId")
     void newReport(GoodsReport goodsReport);
 
-    @Select("select * from goods_report where status=0")
-    @Result(property = "nickName", column = "uid", one = @One(select = "com.jessie.SHMarket.dao.UserDAO.getNickNameByUid"))
+    @Select("select g.*,u.nickName from goods_report g join user u on u.uid = g.uid where g.status=0")
+//    @Results(id="Report_WithNick",value = {
+//            @Result(property = "nickName", column = "g.uid", one = @One(select = "com.jessie.SHMarket.dao.UserDAO.getNickNameByUid",fetchType = FetchType.EAGER))
+//    })//好像这样写（如果column=uid不是g.uid)会导致UID=0，不知道是什么bug
     List<GoodsReport> getUnSolvedReports();
 
-    @Select("select * from goods_report where status=1 order by finishTime desc")
-    @Result(property = "nickName", column = "uid", one = @One(select = "com.jessie.SHMarket.dao.UserDAO.getNickNameByUid"))
+    @Select("select *,u.nickName from goods_report g join user u on u.uid = g.uid where g.status=1 order by g.finishTime desc")
     List<GoodsReport> getSolvedReports();
 
     @Update("update goods_report set status=1,result=#{result},finishTime=#{finishTime} where reportId=#{reportId}")
@@ -29,7 +30,6 @@ public interface GoodsReportDAO
     @Select("select uid from goods_report where reportId=#{reportId}")
     int getReporter(int reportId);
 
-    @Select("select * from  goods_report where reportId=#{reportId}")
-    @Result(property = "nickName", column = "uid", one = @One(select = "com.jessie.SHMarket.dao.UserDAO.getNickNameByUid"))
+    @Select("select g.*,u.nickName from goods_report g join user u on u.uid = g.uid where g.reportId=#{reportId}")
     GoodsReport getReport(int reportId);
 }

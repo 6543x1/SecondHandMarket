@@ -52,5 +52,9 @@ public interface UserService
 
     int getAdditionalScore(int uid);
 
+    String getImgPath(int uid);
+
     int newestUser();
+
+    int getStatus(int uid);
 }

@@ -27,4 +27,14 @@ public class GoodsReport implements Serializable
     {
         return finishTime;
     }
+
+    public int getUid()
+    {
+        return uid;
+    }
+
+    public void setUid(int uid)
+    {
+        this.uid = uid;//因为UID有异常排查到这里，结果生成后发现不是这个问题
+    }
 }

@@ -9,6 +9,8 @@ public class ShmarketApplication
 
     public static void main(String[] args)
     {
+
+
         SpringApplication.run(ShmarketApplication.class, args);
     }
 

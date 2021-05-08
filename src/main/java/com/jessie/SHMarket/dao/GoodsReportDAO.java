@@ -17,13 +17,13 @@ public interface GoodsReportDAO
     void newReport(GoodsReport goodsReport);
 
     @Select("select g.*,u.nickName from goods_report g join user u on u.uid = g.uid where g.status=0")
-//    @Results(id="Report_WithNick",value = {
-//            @Result(property = "nickName", column = "g.uid", one = @One(select = "com.jessie.SHMarket.dao.UserDAO.getNickNameByUid",fetchType = FetchType.EAGER))
-//    })//好像这样写（如果column=uid不是g.uid)会导致UID=0，不知道是什么bug
+    @Results(id = "Report_WithSeller", value = {
+            @Result(property = "targetUser", column = "target", one = @One(select = "com.jessie.SHMarket.dao.GoodsDAO.getSeller", fetchType = FetchType.EAGER))
+    })
+//好像这样写（如果column=uid不是g.uid)会导致UID=0，不知道是什么bug
     List<GoodsReport> getUnSolvedReports();
 
-    @Select("select * from goods_report where status=1 order by finishTime desc")
-//    @ResultMap("Report_WithNick")
+    @Select("select *,u.nickName from goods_report g join user u on u.uid = g.uid where g.status=1 order by g.finishTime desc")
     List<GoodsReport> getSolvedReports();
 
     @Update("update goods_report set status=1,result=#{result},finishTime=#{finishTime} where reportId=#{reportId}")
@@ -32,7 +32,6 @@ public interface GoodsReportDAO
     @Select("select uid from goods_report where reportId=#{reportId}")
     int getReporter(int reportId);
 
-    @Select("select * from goods_report where reportId=#{reportId}")
-//    @ResultMap("Report_WithNick")
+    @Select("select g.*,u.nickName from goods_report g join user u on u.uid = g.uid where g.reportId=#{reportId}")
     GoodsReport getReport(int reportId);
 }

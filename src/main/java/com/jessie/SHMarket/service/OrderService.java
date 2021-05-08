@@ -19,9 +19,12 @@ public interface OrderService
 
     Order getOrderByGid(int gid);
 
-    int newestOrder();
 
     void expireOrder(int oid);
+
+    int getBuyer(int gid);
+
+    int getSeller(int gid);
 
     List<OrderWithGoods> getBuyerOrderWithGoods(int uid);
 

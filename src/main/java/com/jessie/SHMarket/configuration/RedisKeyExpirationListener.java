@@ -4,6 +4,7 @@ import com.jessie.SHMarket.entity.Order;
 import com.jessie.SHMarket.service.OrderService;
 import com.jessie.SHMarket.service.ShopCartService;
 import com.jessie.SHMarket.service.UserService;
+import com.jessie.SHMarket.utils.RedisUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.connection.Message;
 import org.springframework.data.redis.listener.KeyExpirationEventMessageListener;

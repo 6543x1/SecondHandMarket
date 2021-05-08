@@ -3,10 +3,10 @@ package com.jessie.SHMarket.controller;
 import com.alibaba.fastjson.JSON;
 import com.github.pagehelper.PageHelper;
 import com.github.pagehelper.PageInfo;
-import com.jessie.SHMarket.configuration.JwtTokenUtil;
-import com.jessie.SHMarket.configuration.RedisUtil;
 import com.jessie.SHMarket.entity.*;
 import com.jessie.SHMarket.service.*;
+import com.jessie.SHMarket.utils.JwtTokenUtil;
+import com.jessie.SHMarket.utils.RedisUtil;
 import org.apache.commons.io.FileUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -58,7 +58,6 @@ public class UserController
     @Autowired
     private AdminOperationService adminOperationService;//仅用于查询用户被管理员操作记录
 
-    // nohup java -jar /usr/shmarket-0.0.1-SNAPSHOT.jar &
     @PostMapping(value = "/ResetPw", produces = "application/json;charset=UTF-8")
     public String editPassword(String oldPassword, String newPassword) throws Exception
     {
@@ -74,10 +73,10 @@ public class UserController
         }
     }
 
-    //Spring Security获取当前用会话的户信息
+    //Spring Security获取当前会话的用户信息
     public static String getCurrentUsername()
     {
-        String username = "";
+        String username;
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         Object principal = authentication.getPrincipal();
         if (principal == null)
@@ -90,7 +89,7 @@ public class UserController
             username = userDetails.getUsername();
         } else
         {
-            username = principal.toString();//????
+            username = principal.toString();
         }
         return username;
     }
@@ -144,7 +143,7 @@ public class UserController
     public String down(int uid, HttpServletRequest request, HttpServletResponse response)
     {
 
-       String path = userService.getImgPath(uid);
+        String path = userService.getImgPath(uid);
         if ("".equals(path) || path == null)
         {
             return JSON.toJSONString(Result.error("当前请求用户没有头像", 404));
@@ -301,7 +300,7 @@ public class UserController
         if (redisUtil.exists("MailCode|" + username))
         {
             ArrayList<String> data = redisUtil.get("MailCode|" + username, ArrayList.class);
-            if (data.get(0) == "1")
+            if ("1".equals(data.get(0)))
             {
                 redisUtil.delete("MailCode" + username);
                 data.set(0, "2");
@@ -353,18 +352,12 @@ public class UserController
         return JSON.toJSONString(res);
     }
 
-    @RequestMapping(value = "/noAccess", produces = "application/json;charset=UTF-8")
-    public String noAccess(SessionStatus status) throws Exception
-    {
-        return JSON.toJSONString(Result.error("权限不足", 403));
-    }
-
     @RequestMapping(value = "/isLogin", produces = "application/json;charset=UTF-8")
     public String loginIN() throws Exception
     {
         try
         {
-            return JSON.toJSONString(Result.success("是" + getCurrentUsername(), 403));
+            return JSON.toJSONString(Result.success("是" + getCurrentUsername(), 200));
         } catch (NullPointerException e)
         {
             return JSON.toJSONString(Result.error("未检测到登录用户的信息"));

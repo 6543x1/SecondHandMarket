@@ -2,13 +2,13 @@ package com.jessie.SHMarket.controller;
 
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
-import com.jessie.SHMarket.configuration.JwtTokenUtil;
 import com.jessie.SHMarket.entity.GoodsImg;
 import com.jessie.SHMarket.entity.Result;
 import com.jessie.SHMarket.exception.WrongFileTypeException;
 import com.jessie.SHMarket.service.GoodsImgService;
 import com.jessie.SHMarket.service.GoodsService;
 import com.jessie.SHMarket.service.UserService;
+import com.jessie.SHMarket.utils.JwtTokenUtil;
 import org.apache.commons.io.FileUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;

@@ -1,11 +1,11 @@
 package com.jessie.SHMarket.controller;
 
 import com.alibaba.fastjson.JSON;
-import com.jessie.SHMarket.configuration.JwtTokenUtil;
-import com.jessie.SHMarket.configuration.RedisUtil;
 import com.jessie.SHMarket.entity.Result;
 import com.jessie.SHMarket.service.GoodsService;
 import com.jessie.SHMarket.service.ShopCartService;
+import com.jessie.SHMarket.utils.JwtTokenUtil;
+import com.jessie.SHMarket.utils.RedisUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.PostMapping;

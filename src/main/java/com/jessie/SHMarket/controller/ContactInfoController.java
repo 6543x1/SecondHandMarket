@@ -1,11 +1,11 @@
 package com.jessie.SHMarket.controller;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.jessie.SHMarket.configuration.JwtTokenUtil;
+import com.alibaba.fastjson.JSON;
 import com.jessie.SHMarket.entity.ContactInfo;
 import com.jessie.SHMarket.entity.Result;
 import com.jessie.SHMarket.service.ContactInfoService;
 import com.jessie.SHMarket.service.UserService;
+import com.jessie.SHMarket.utils.JwtTokenUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -20,8 +20,6 @@ import java.util.List;
 public class ContactInfoController
 {
     @Autowired
-    ObjectMapper objectMapper;
-    @Autowired
     ContactInfoService contactInfoService;
     @Autowired
     UserService userService;
@@ -35,7 +33,7 @@ public class ContactInfoController
         int uid = jwtTokenUtil.getUidFromToken(token);
         contactInfo.setUid(uid);//防一手异常uid
         contactInfoService.newContactInfo(contactInfo);
-        return objectMapper.writeValueAsString(Result.success("成功"));
+        return JSON.toJSONString(Result.success("成功"));
     }
 
     @RequestMapping("/get")
@@ -55,8 +53,8 @@ public class ContactInfoController
         int uid = jwtTokenUtil.getUidFromToken(token);
         if (contactInfoService.getContactInfo(cid).getUid() != uid)
         {
-            return objectMapper.writeValueAsString(Result.error("无权限", 403));
+            return JSON.toJSONString(Result.error("无权限", 403));
         }
-        return objectMapper.writeValueAsString(Result.success("成功"));
+        return JSON.toJSONString(Result.success("成功"));
     }
 }

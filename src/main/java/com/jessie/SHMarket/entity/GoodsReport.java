@@ -15,6 +15,7 @@ public class GoodsReport implements Serializable
 {
     int uid;
     int target;
+    int targetUser;//标记卖家。方便扣分
     String reason;
     int status;
     int reportId;
@@ -35,6 +36,6 @@ public class GoodsReport implements Serializable
 
     public void setUid(int uid)
     {
-        this.uid = uid;
+        this.uid = uid;//因为UID有异常排查到这里，结果生成后发现不是这个问题
     }
 }

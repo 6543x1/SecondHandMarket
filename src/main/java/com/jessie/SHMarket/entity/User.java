@@ -106,7 +106,7 @@ public class User implements Serializable
     public String getNickName()
     {
         return nickName;
-    }
+    }//5.8日 答：因为当时Bean里可能是注入到最后一个了
 
     public void setNickName(String nickName)
     {

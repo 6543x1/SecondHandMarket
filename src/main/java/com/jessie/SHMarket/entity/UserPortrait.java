@@ -5,7 +5,7 @@ import java.io.Serializable;
 
 public class UserPortrait implements Serializable
 {
-
+//原定是用于记录用户的数据，但是后面功能被刀了，就。。。就其中有一部分没有使用吧
     private int uid;
     private int countGoodComment;
     private int countMediumComment;

@@ -3,9 +3,9 @@ package com.jessie.SHMarket.controller;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.jessie.SHMarket.configuration.RedisUtil;
 import com.jessie.SHMarket.entity.*;
 import com.jessie.SHMarket.service.*;
+import com.jessie.SHMarket.utils.RedisUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.ui.Model;
@@ -22,7 +22,7 @@ import java.util.List;
 
 import static com.jessie.SHMarket.service.impl.MailServiceImpl.getRandomString;
 
-//本类中方法仅用于测试，即使被重复调用也不会影响数据库
+//本类中方法仅用于测试或批量生成测试数据，正式上线后即使被重复调用也不会影响数据库
 @RestController
 @RequestMapping("/test")
 public class TestController
@@ -52,7 +52,7 @@ public class TestController
         theUser.setPassword("123456");
         theUser.setNickName(getRandomString());
         theUser.setStatus(0);
-        System.out.println(theUser.toString());
+        System.out.println(theUser);
         System.out.println("success create");
         //userService.saveUser(theUser);
         return objectMapper.writeValueAsString("success");
@@ -126,17 +126,12 @@ public class TestController
         return JSON.toJSONString(list);
     }
 
-    @GetMapping(value = "newestGoods", produces = "application/json;charset=UTF-8")
-    public String newestGoodsTest()
-    {
-        return JSON.toJSONString(goodsService.newestGoods());
-    }
 
     @GetMapping(value = "testRedisSaveMap", produces = "application/json;charset=UTF-8")
     public String testRedisSaveMap()
     {
 
-        redisUtil.set("mailCode", 8);
+        redisUtil.set("mailCode", 8, 10);
         return null;
     }
 
@@ -153,6 +148,14 @@ public class TestController
     {
         Goods_Extended goods_extended = goodsService.getRecommendGoods(key);
         return JSON.toJSONString(goods_extended);
+    }
+
+    @GetMapping(value = "testJSON", produces = "application/json;charset=UTF-8")
+    public String testMyJSON(String key)
+    {
+        Goods goods = new Goods();
+        goods.setQuality(null);
+        return JSON.toJSONString(goods);
     }
 
 }

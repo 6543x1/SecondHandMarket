@@ -126,11 +126,6 @@ public class TestController
         return JSON.toJSONString(list);
     }
 
-    @GetMapping(value = "newestGoods", produces = "application/json;charset=UTF-8")
-    public String newestGoodsTest()
-    {
-        return JSON.toJSONString(goodsService.newestGoods());
-    }
 
     @GetMapping(value = "testRedisSaveMap", produces = "application/json;charset=UTF-8")
     public String testRedisSaveMap()

@@ -19,7 +19,6 @@ public interface OrderService
 
     Order getOrderByGid(int gid);
 
-    int newestOrder();
 
     void expireOrder(int oid);
 

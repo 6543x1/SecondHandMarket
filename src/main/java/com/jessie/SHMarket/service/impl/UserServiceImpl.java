@@ -156,12 +156,6 @@ public class UserServiceImpl implements UserService
     }
 
     @Override
-    public int newestUid()
-    {
-        return userDAO.newestUid();
-    }
-
-    @Override
     public void updateAdditionalScore(int uid, int score)
     {
         userPortraitDAO.updateAdditionalScore(uid, userPortraitDAO.getAdditionalScore(uid) + score);

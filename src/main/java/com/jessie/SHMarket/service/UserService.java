@@ -38,8 +38,6 @@ public interface UserService
 
     int getUid(String username);
 
-    int newestUid();
-
     int calculateEvaluation(int status);
 
     void newUserPortrait(UserPortrait userPortrait);

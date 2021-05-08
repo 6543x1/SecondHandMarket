@@ -58,7 +58,7 @@ public class GoodsController
         String token = request.getHeader("token");
         int uid = jwtTokenUtil.getUidFromToken(token);
         if (goodsService.queryTodayGoods(uid) > 300)
-        {
+        {//为了方便测试就修改成300了
             return JSON.toJSONString(Result.error("每天最多上传3个商品"));
         }
         goods.setStatus(0);//0待审核 1未卖出 2卖出 -1非法商品

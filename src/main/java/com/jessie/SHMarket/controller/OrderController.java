@@ -63,7 +63,7 @@ public class OrderController
         orderComment.setSeller(order.getSeller());
         orderComment.setOid(order.getOid());
         orderCommentService.newOrderComment(orderComment);
-        redisUtil.set("orderGenerated|" + orderService.newestOrder(), "7 DAYS", 60 * 60 * 24 * 7);
+        redisUtil.set("orderGenerated|" + order.getOid(), "7 DAYS", 60 * 60 * 24 * 7);
         redisUtil.saveUserMessage(order.getSeller(), new UserMessage("你的一个商品" + "#{" + order.getGid() + "}" + "已经被拍下了", "商品消息", LocalDateTime.now()));
         mailService.sendNewOrder(userService.getMailAddr(order.getSeller()), "你的一个商品被拍下了，快去看看吧");
         return JSON.toJSONString(Result.success("下单成功", order));
@@ -198,7 +198,7 @@ public class OrderController
             if ("好评".equals(type))
             {
                 int curStatus = userService.getStatus(order.getSeller());
-                if (curStatus >= 60 && curStatus <= 70 && curStatus + 8 <= 70)
+                if (curStatus >= 40 && curStatus <= 70 && curStatus + 8 <= 70)
                 {
                     userService.plusStatus(order.getSeller(), 8);
                 }

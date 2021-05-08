@@ -67,11 +67,6 @@ public class OrderServiceImpl implements OrderService
         return orderDAO.getOrderByGid(gid);
     }
 
-    @Override
-    public int newestOrder()
-    {
-        return orderDAO.newestOrder();
-    }
 
     @Override
     public List<OrderWithGoods> getSellerOrderWithGoods(int uid)

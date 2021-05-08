@@ -38,6 +38,8 @@ public interface UserService
 
     int getUid(String username);
 
+    int newestUid();
+
     int calculateEvaluation(int status);
 
     void newUserPortrait(UserPortrait userPortrait);
@@ -49,10 +51,7 @@ public interface UserService
     void updatePunishedScore(int uid, int score);
 
     int getAdditionalScore(int uid);
-
     String getImgPath(int uid);
-
     int newestUser();
-
     int getStatus(int uid);
 }

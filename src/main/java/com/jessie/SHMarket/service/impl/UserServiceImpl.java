@@ -156,6 +156,12 @@ public class UserServiceImpl implements UserService
     }
 
     @Override
+    public int newestUid()
+    {
+        return userDAO.newestUid();
+    }
+
+    @Override
     public void updateAdditionalScore(int uid, int score)
     {
         userPortraitDAO.updateAdditionalScore(uid, userPortraitDAO.getAdditionalScore(uid) + score);
@@ -198,7 +204,7 @@ public class UserServiceImpl implements UserService
         } else if (status >= 40)
         {
             evaluation = 3;
-        } else if (status < 40)
+        } else if(status<40)
         {
             evaluation = 4;
         }

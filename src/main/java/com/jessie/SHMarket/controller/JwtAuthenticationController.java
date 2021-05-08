@@ -1,6 +1,8 @@
 package com.jessie.SHMarket.controller;
 
 import com.alibaba.fastjson.JSON;
+import com.jessie.SHMarket.configuration.JwtTokenUtil;
+import com.jessie.SHMarket.configuration.RedisUtil;
 import com.jessie.SHMarket.entity.JwtRequest;
 import com.jessie.SHMarket.entity.JwtResponse;
 import com.jessie.SHMarket.entity.Result;
@@ -8,8 +10,6 @@ import com.jessie.SHMarket.entity.User;
 import com.jessie.SHMarket.exception.BannedUserException;
 import com.jessie.SHMarket.service.UserService;
 import com.jessie.SHMarket.service.impl.UserDetailServiceImpl;
-import com.jessie.SHMarket.utils.JwtTokenUtil;
-import com.jessie.SHMarket.utils.RedisUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.authentication.AuthenticationManager;

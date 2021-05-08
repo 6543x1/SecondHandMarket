@@ -46,7 +46,7 @@ public interface GoodsDAO
     @Update("update goods set status=#{status} where gid =#{gid}")
     void updateGoods(@Param("status") int status, @Param("gid") int gid);
 
-    @Update("update goods set status=-2 where gid=#{gid}")
+    @Update("update goods set status=-1 where gid=#{gid}")
 //假删除，实际设置status=-1，仅有在数据库中可查看
     void deleteGoods(int gid);
 

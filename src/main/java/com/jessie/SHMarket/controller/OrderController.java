@@ -3,10 +3,10 @@ package com.jessie.SHMarket.controller;
 import com.alibaba.fastjson.JSON;
 import com.github.pagehelper.PageHelper;
 import com.github.pagehelper.PageInfo;
+import com.jessie.SHMarket.configuration.JwtTokenUtil;
+import com.jessie.SHMarket.configuration.RedisUtil;
 import com.jessie.SHMarket.entity.*;
 import com.jessie.SHMarket.service.*;
-import com.jessie.SHMarket.utils.JwtTokenUtil;
-import com.jessie.SHMarket.utils.RedisUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.ui.ModelMap;
@@ -63,7 +63,7 @@ public class OrderController
         orderComment.setSeller(order.getSeller());
         orderComment.setOid(order.getOid());
         orderCommentService.newOrderComment(orderComment);
-        redisUtil.set("orderGenerated|" + order.getOid(), "7 DAYS", 60 * 60 * 24 * 7);
+        redisUtil.set("orderGenerated|" + orderService.newestOrder(), "7 DAYS", 60 * 60 * 24 * 7);
         redisUtil.saveUserMessage(order.getSeller(), new UserMessage("你的一个商品" + "#{" + order.getGid() + "}" + "已经被拍下了", "商品消息", LocalDateTime.now()));
         mailService.sendNewOrder(userService.getMailAddr(order.getSeller()), "你的一个商品被拍下了，快去看看吧");
         return JSON.toJSONString(Result.success("下单成功", order));
@@ -100,22 +100,17 @@ public class OrderController
         orderService.doneOrder(theOrder);
         return JSON.toJSONString(Result.success(("订单状态更新"), orderService.getOrder(oid)));
     }
-
     @PreAuthorize("hasAnyAuthority('admin')")
     @PostMapping("/deleteOrderTruly")
-    public String deleteOrderTruly(int oid) throws Exception
-    {
+    public String deleteOrderTruly(int oid) throws Exception{
         orderService.deleteOrder(oid);
         return JSON.toJSONString(Result.success("订单已彻底删除"));
     }
-
     @PreAuthorize("hasAnyAuthority('admin','user')")
     @PostMapping("/deleteOrder")
-    public String deleteOrder(int oid, HttpServletRequest request) throws Exception
+    public String deleteOrder(Order order) throws Exception
     {
-        int uid = jwtTokenUtil.getUidFromToken(request.getHeader("token"));
-        Order order = orderService.getOrder(oid);
-        if (order.getBuyer() != uid || order.getSeller() != uid)
+        if (!checkIsTheUser(order))
         {
             return JSON.toJSONString(Result.error("不可以用别人号下单", 403));
         }
@@ -197,17 +192,10 @@ public class OrderController
             orderCommentService.updateBuyerComment(orderComment);
             if ("好评".equals(type))
             {
-                int curStatus = userService.getStatus(order.getSeller());
-                if (curStatus >= 40 && curStatus <= 70 && curStatus + 8 <= 70)
-                {
-                    userService.plusStatus(order.getSeller(), 8);
+                if(userService.getStatus(uid)<200){
+                userService.plusStatus(order.getSeller(), 5);
+                userService.updateAdditionalScore(uid, 5);
                 }
-                if (curStatus < 200)
-                {
-                    userService.plusStatus(order.getSeller(), 5);
-                    userService.updateAdditionalScore(uid, 5);
-                }
-
             } else if ("差评".equals(type))
             {
                 userService.plusStatus(order.getSeller(), -5);
@@ -230,5 +218,14 @@ public class OrderController
         return JSON.toJSONString(Result.success("评价成功"));
     }
 
+    public boolean checkIsTheUser(Order order)
+    {
+        User buyer = userService.getUser(order.getBuyer());
+        if (buyer.getUsername().equals(UserController.getCurrentUsername()))
+        {
+            return true;
+        }
+        return false;
+    }
 }
 

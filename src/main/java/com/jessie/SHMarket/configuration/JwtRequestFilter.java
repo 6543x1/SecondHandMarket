@@ -4,8 +4,6 @@ package com.jessie.SHMarket.configuration;
 import com.alibaba.fastjson.JSON;
 import com.jessie.SHMarket.entity.Result;
 import com.jessie.SHMarket.service.impl.UserDetailServiceImpl;
-import com.jessie.SHMarket.utils.JwtTokenUtil;
-import com.jessie.SHMarket.utils.RedisUtil;
 import io.jsonwebtoken.ExpiredJwtException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;

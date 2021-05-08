@@ -5,11 +5,11 @@ import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.github.pagehelper.PageHelper;
 import com.github.pagehelper.PageInfo;
+import com.jessie.SHMarket.configuration.JwtTokenUtil;
+import com.jessie.SHMarket.configuration.RedisUtil;
 import com.jessie.SHMarket.dao.Goods_commentDAO;
 import com.jessie.SHMarket.entity.*;
 import com.jessie.SHMarket.service.*;
-import com.jessie.SHMarket.utils.JwtTokenUtil;
-import com.jessie.SHMarket.utils.RedisUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
@@ -58,7 +58,7 @@ public class GoodsController
         String token = request.getHeader("token");
         int uid = jwtTokenUtil.getUidFromToken(token);
         if (goodsService.queryTodayGoods(uid) > 300)
-        {//为了方便测试就修改成300了
+        {
             return JSON.toJSONString(Result.error("每天最多上传3个商品"));
         }
         goods.setStatus(0);//0待审核 1未卖出 2卖出 -1非法商品
@@ -91,7 +91,7 @@ public class GoodsController
             return JSON.toJSONString(Result.error("已卖出的商品但未完成交易或异常的商品不可删除", 403));
         }
         goodsService.deleteGoods(gid);
-        return JSONObject.toJSONString(Result.success("商品删除成功"));
+        return JSONObject.toJSONString(Result.success("商品信息设置成功", goodsService.newestGoods()));
     }
 
     @PreAuthorize("hasAnyAuthority('admin','user')")
@@ -266,6 +266,14 @@ public class GoodsController
             return JSON.toJSONString(Result.error("非本人举报", 403));
         }
         return JSON.toJSONString(goodsReportService.getReport(reportId));
+    }
+    @GetMapping(value = "/getAnGood", produces = "application/json;charset=UTF-8")
+    public Goods getAnGood(int gid, HttpServletRequest request)
+    {
+        Goods goods=goodsService.getGoods(gid);
+        if(goods.getStatus()==1)
+        return goods;
+        else return null;
     }
 
 

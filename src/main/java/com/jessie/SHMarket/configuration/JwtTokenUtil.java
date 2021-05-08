@@ -1,4 +1,4 @@
-package com.jessie.SHMarket.utils;
+package com.jessie.SHMarket.configuration;
 
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;

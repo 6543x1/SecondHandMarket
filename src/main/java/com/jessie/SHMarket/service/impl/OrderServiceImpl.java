@@ -19,6 +19,7 @@ public class OrderServiceImpl implements OrderService
     {
         orderDAO.newOrder(order);
     }
+
     @Override
     public void doneOrder(Order order)
     {
@@ -29,18 +30,6 @@ public class OrderServiceImpl implements OrderService
     public void expireOrder(int oid)
     {
         orderDAO.expireOrder(oid);
-    }
-
-    @Override
-    public int getBuyer(int gid)
-    {
-        return orderDAO.getBuyer(gid);
-    }
-
-    @Override
-    public int getSeller(int gid)
-    {
-        return orderDAO.getSeller(gid);
     }
 
     @Override
@@ -67,6 +56,11 @@ public class OrderServiceImpl implements OrderService
         return orderDAO.getOrderByGid(gid);
     }
 
+    @Override
+    public int newestOrder()
+    {
+        return orderDAO.newestOrder();
+    }
 
     @Override
     public List<OrderWithGoods> getSellerOrderWithGoods(int uid)

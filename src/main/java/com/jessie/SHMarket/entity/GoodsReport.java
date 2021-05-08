@@ -35,6 +35,6 @@ public class GoodsReport implements Serializable
 
     public void setUid(int uid)
     {
-        this.uid = uid;//因为UID有异常排查到这里，结果生成后发现不是这个问题
+        this.uid = uid;
     }
 }

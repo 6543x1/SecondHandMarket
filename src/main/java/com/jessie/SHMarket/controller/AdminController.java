@@ -1,13 +1,15 @@
 package com.jessie.SHMarket.controller;
 
 import com.alibaba.fastjson.JSON;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.pagehelper.PageHelper;
 import com.github.pagehelper.PageInfo;
+import com.jessie.SHMarket.configuration.JwtTokenUtil;
+import com.jessie.SHMarket.configuration.RedisUtil;
 import com.jessie.SHMarket.entity.*;
 import com.jessie.SHMarket.service.*;
-import com.jessie.SHMarket.utils.JwtTokenUtil;
-import com.jessie.SHMarket.utils.RedisUtil;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpServletRequest;
@@ -20,7 +22,11 @@ import java.util.List;
 public class AdminController
 {
     @Autowired
+    private ObjectMapper objectMapper;
+    @Autowired
     private UserService userService;
+    @Autowired
+    private BCryptPasswordEncoder bCryptPasswordEncoder;
     @Autowired
     private MailService mailService;
     @Autowired
@@ -41,7 +47,7 @@ public class AdminController
     @PostMapping(value = "/testAdminController", produces = "application/json;charset=UTF-8")
     public String testAdmin() throws Exception
     {
-        return JSON.toJSONString(Result.success("您是管理员，可以进行管理员操作。"));
+        return objectMapper.writeValueAsString(Result.success("您是管理员，可以进行管理员操作。"));
     }
 
     @PostMapping(value = "/deleteOrderTruly", produces = "application/json;charset=UTF-8")
@@ -51,7 +57,7 @@ public class AdminController
         int operator = jwtTokenUtil.getUidFromToken(token);
         orderService.deleteOrder(oid);
         adminOperationService.newOperation(new AdminOperation(operator, "删除订单", 0, oid, LocalDateTime.now(), reason));
-        return JSON.toJSONString(Result.success("订单已彻底删除"));
+        return objectMapper.writeValueAsString(Result.success("订单已彻底删除"));
     }
 
     @PostMapping(value = "/getUncheckedGoods", produces = "application/json;charset=UTF-8")
@@ -68,10 +74,10 @@ public class AdminController
         //前端要单独做一个页面给管理员用，不然误调用方法不好恢复
         String token = request.getHeader("token");
         int operator = jwtTokenUtil.getUidFromToken(token);
-        goodsService.updateGoods(-1, gid);
+        goodsService.deleteGoods(gid);
         adminOperationService.newOperation(new AdminOperation(operator, "删除不合格商品", goodsService.getGoods(gid).getUid(), gid, LocalDateTime.now(), reason));
         redisUtil.saveUserMessage(goodsService.getUid(gid), new UserMessage("你的一个商品" + "#{" + gid + "}" + "未能通过审核", "审核消息", LocalDateTime.now()));
-        return JSON.toJSONString(Result.success("不合格商品已删除"));
+        return objectMapper.writeValueAsString(Result.success("不合格商品已删除"));
     }
 
     @PostMapping(value = "/passGoods", produces = "application/json;charset=UTF-8")
@@ -85,7 +91,7 @@ public class AdminController
         adminOperationService.newOperation(new AdminOperation(uid, "通过合格商品", target, gid, LocalDateTime.now(), "PASS"));
         redisUtil.saveUserMessage(target, new UserMessage("你的一个商品" + "#{" + gid + "}" + "已经通过审核了", "审核消息", LocalDateTime.now()));
         mailService.newMessage("你的一个商品已经通过审核了", userService.getMailAddr(target), "你的商品通过审核了，快去APP里看看吧~");
-        return JSON.toJSONString(Result.success("商品通过审核"));
+        return objectMapper.writeValueAsString(Result.success("商品通过审核"));
     }
 
     @PostMapping(value = "/punishUser", produces = "application/json;charset=UTF-8")
@@ -94,9 +100,9 @@ public class AdminController
         //前端要单独做一个页面给管理员用，不然误调用方法不好恢复
         String token = request.getHeader("token");
         int operator = jwtTokenUtil.getUidFromToken(token);
-        if ("admin".equals(userService.getUser(uid).getRole()))
+        if (userService.getUser(uid).getRole().equals("admin"))
         {
-            return JSON.toJSONString(Result.error("禁止管理员内斗"));
+            return objectMapper.writeValueAsString(Result.error("禁止管理员内斗"));
         }
         User user = userService.getUser(uid);
         adminOperationService.newOperation(new AdminOperation(operator, "信誉分操作", uid, score, LocalDateTime.now(), reason));
@@ -105,7 +111,7 @@ public class AdminController
             userService.setStatus(uid, 0);
             userService.updatePunishedScore(uid, score);
             mailService.newMessage(user.getUsername() + "你号没了", user.getMailAddr(), "你号被封了，详情联系客服");
-            return JSON.toJSONString(Result.success("封号成功"));
+            return objectMapper.writeValueAsString(Result.success("封号成功"));
         } else
         {
             redisUtil.saveUserMessage(uid, new UserMessage("管理员扣除了你的信誉分" + "#{" + score + "}" + "分，有疑问联系管理员", "信誉分消息", LocalDateTime.now()));
@@ -113,7 +119,7 @@ public class AdminController
             userService.plusStatus(uid, -score);
         }
         adminOperationService.newOperation(new AdminOperation(operator, "信誉分操作", uid, score, LocalDateTime.now(), reason));
-        return JSON.toJSONString(Result.success("操作成功"));
+        return objectMapper.writeValueAsString(Result.success("操作成功"));
     }
 
     @PostMapping(value = "/recoverUser", produces = "application/json;charset=UTF-8")
@@ -125,12 +131,12 @@ public class AdminController
         User user = userService.getUser(uid);
         if (userService.getUser(uid).getStatus() > 25)
         {
-            return JSON.toJSONString(Result.error("无需恢复用户身份"));
+            return objectMapper.writeValueAsString(Result.error("无需恢复用户身份"));
         }
         userService.setStatus(uid, 25);
         adminOperationService.newOperation(new AdminOperation(operator, "恢复用户", uid, 25, LocalDateTime.now(), reason));
         mailService.newMessage(user.getUsername() + "用户,管理员恢复了你的号", user.getMailAddr(), "下次不要再做违规操作,详情联系客服");
-        return JSON.toJSONString(Result.success("操作成功"));
+        return objectMapper.writeValueAsString(Result.success("操作成功"));
     }
 
     @PostMapping(value = "/getAnAdminOperations", produces = "application/json;charset=UTF-8")

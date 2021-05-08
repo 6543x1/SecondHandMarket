@@ -34,11 +34,8 @@ public interface OrderDAO
     @Select("select * from user_order where gid=#{gid} and status>=0")
     Order getOrderByGid(int gid);//这个方法仅限于查找非异常的订单，避免查出多个来
 
-    @Select("select buyer from user_order where oid=#{oid}")
-    int getBuyer(int oid);
-
-    @Select("select seller from user_order where oid=#{oid}")
-    int getSeller(int oid);
+    @Select("select oid from user_order where gid=(SELECT LAST_INSERT_ID())")
+    int newestOrder();
 
     @Select("select oid,gid from user_order where buyer=#{uid} order by generatedTime desc")
     @Results(id = "OrderWithGoods", value = {

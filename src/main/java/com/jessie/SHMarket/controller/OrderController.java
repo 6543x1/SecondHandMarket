@@ -85,8 +85,14 @@ public class OrderController
         }
         if (cancel)
         {
-            theOrder.setStatus(-1);
-            goodsService.updateGoods(1, theOrder.getGid());
+            if (theOrder.getStatus() == 0)
+            {
+                theOrder.setStatus(-1);
+                goodsService.updateGoods(1, theOrder.getGid());
+            } else
+            {
+                return JSON.toJSONString(Result.error("该订单因为有一方确认完成而无法取消，请联系管理员处理"));
+            }
         } else if (theOrder.getBuyer() == uid)
         {
             theOrder.setStatus(theOrder.getStatus() + 10);

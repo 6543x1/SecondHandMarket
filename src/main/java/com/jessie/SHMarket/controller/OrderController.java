@@ -70,7 +70,7 @@ public class OrderController
     }
 
     @PreAuthorize("hasAnyAuthority('admin','user')")
-    @PostMapping("/doneOrder")
+    @PostMapping(value = "/doneOrder", produces = "text/plain;charset=UTF-8")
     public String doneOrder(int oid, @RequestParam(value = "cancel", defaultValue = "false") boolean cancel, HttpServletRequest request) throws Exception
     {
         int uid = jwtTokenUtil.getUidFromToken(request.getHeader("token"));
@@ -79,9 +79,9 @@ public class OrderController
         {
             return JSON.toJSONString(Result.error("你没有这个订单", 403));
         }//本来想写拦截器后面发现还挺麻烦的
-        if (theOrder.getStatus() >= 11)
+        if (theOrder.getStatus() >= 11 || theOrder.getStatus() < 0)
         {
-            return JSON.toJSONString(Result.error("订单已经完成了"));
+            return JSON.toJSONString(Result.error("订单已完成或异常"));
         }
         if (cancel)
         {

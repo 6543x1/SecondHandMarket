@@ -88,6 +88,9 @@ public class GoodsServiceImpl implements GoodsService
         } else if ("price".equals(type))
         {
             return goodsDAO.searchOrderByPrice(keyValue);
+        } else if ("relevancy".equals(type))
+        {
+            return goodsDAO.searchOrderByRelevancy(keyValue);
         } else
         {
             return goodsDAO.search(keyValue);

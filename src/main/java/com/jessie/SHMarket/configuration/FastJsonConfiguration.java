@@ -42,5 +42,7 @@ public class FastJsonConfiguration implements WebMvcConfigurer
         //所以最后的决定是抛弃FASTJSON的converter，毕竟我需要在请求发生错误的时候返回错误信息
         //直接返回实体类，我看别人请求失败就直接NULL返回去 我觉得这样不太好
         //也不知道这样对不对，希望多多指教
+        //那为什么不把这个删掉呢？因为我不想删掉，我想留下这个故事
+        //那为什么不注释掉代码呢？因为大片的注释太难看了（
     }
 }

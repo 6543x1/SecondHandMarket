@@ -26,9 +26,9 @@ public class OrderServiceImpl implements OrderService
     }
 
     @Override
-    public void expireOrder(int oid)
+    public void setGoodsStatusUnusual(int oid)
     {
-        orderDAO.expireOrder(oid);
+        orderDAO.setGoodsStatusUnusual(oid);
     }
 
     @Override

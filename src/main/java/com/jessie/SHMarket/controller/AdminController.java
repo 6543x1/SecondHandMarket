@@ -175,10 +175,28 @@ public class AdminController
     @PostMapping(value = "/solveReports", produces = "application/json;charset=UTF-8")
     public String solveReport(int reportId, String result, HttpServletRequest request)
     {
-        goodsReportService.finishReport(reportId, result, LocalDateTime.now());//时间还没写
+        goodsReportService.finishReport(reportId, result, LocalDateTime.now());
         mailService.newMessage("你的举报进度有更新", userService.getMailAddr(goodsReportService.getReporter(reportId)), result);
         redisUtil.saveUserMessage(goodsReportService.getReporter(reportId), new UserMessage("你的举报#{" + reportId + "}结果处理如下" + result, "举报消息", LocalDateTime.now()));
         return JSON.toJSONString(Result.success("处理成功"));
+    }
+
+    @PostMapping(value = "/setOrderStatus", produces = "application/json;charset=UTF-8")
+    public String setOrderStatus(int oid, HttpServletRequest request)
+    {
+        orderService.setGoodsStatusUnusual(oid);
+        return JSON.toJSONString(Result.success("处理成功"));
+    }
+
+    @PostMapping(value = "/getOrderByGid", produces = "text/plain;charset=UTF-8")
+    public String getOrderByGid(int gid, HttpServletRequest request)
+    {
+        Order order = orderService.getOrderByGid(gid);
+        if (order == null) return JSON.toJSONString(Result.error("该商品不存在活动的订单或已完成的订单"));
+        else
+        {
+            return JSON.toJSONString(order);
+        }
     }
 
 }

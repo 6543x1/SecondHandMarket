@@ -20,7 +20,8 @@ public interface OrderDAO
     void doneOrder(Order order);
 
     @Update("update user_order set status=-2 where oid=#{oid}")
-    void expireOrder(int oid);
+    void setGoodsStatusUnusual(int oid);
+
 
     @Delete("delete from user_order where oid=#{oid}")
     void deleteOrder(int oid);//修改订单好麻烦，让用户重新下单算了

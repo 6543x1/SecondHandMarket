@@ -62,6 +62,11 @@ public interface GoodsDAO
     @ResultMap(value = "Goods_More_Map")
     List<Goods_Extended> searchOrderByPrice(String keyValue);
 
+    @Select("select t1.*,u.evaluation,u.nickName from goods t1 join user u on t1.uid = u.uid where match(t1.description) against(#{keyValue}) and t1.status=1")
+    @ResultMap(value = "Goods_More_Map")
+    List<Goods_Extended> searchOrderByRelevancy(String keyValue);
+
+
     @Select("select count(*) from goods where to_days(uploadTime) = to_days(now()) and uid=#{uid}")
     int queryTodayGoods(int uid);
 

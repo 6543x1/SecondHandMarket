@@ -20,7 +20,7 @@ public interface OrderService
     Order getOrderByGid(int gid);
 
 
-    void expireOrder(int oid);
+    void setGoodsStatusUnusual(int oid);
 
     int getBuyer(int gid);
 

@@ -18,6 +18,7 @@ public interface GoodsReportDAO
 
     @Select("select g.*,u.nickName from goods_report g join user u on u.uid = g.uid where g.status=0")
     @Results(id = "Report_WithSeller", value = {
+            @Result(property = "target", column = "target"),
             @Result(property = "targetUser", column = "target", one = @One(select = "com.jessie.SHMarket.dao.GoodsDAO.getSeller", fetchType = FetchType.EAGER))
     })
 //好像这样写（如果column=uid不是g.uid)会导致UID=0，不知道是什么bug

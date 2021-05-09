@@ -182,9 +182,12 @@ public class AdminController
     }
 
     @PostMapping(value = "/setOrderStatus", produces = "application/json;charset=UTF-8")
-    public String setOrderStatus(int oid, HttpServletRequest request)
+    public String setOrderStatus(int oid, String reason, HttpServletRequest request)
     {
+        int operator = jwtTokenUtil.getUidFromToken(request.getHeader("token"));
         orderService.setGoodsStatusUnusual(oid);
+        adminOperationService.newOperation(new AdminOperation(operator, "设置订单状态异常", orderService.getOrder(oid).getSeller(), oid, LocalDateTime.now(), reason));
+        //懒得再写一个由oid获取seller的方法了，就这样吧...体量不大的话，这种低效操作应该也还好。
         return JSON.toJSONString(Result.success("处理成功"));
     }
 

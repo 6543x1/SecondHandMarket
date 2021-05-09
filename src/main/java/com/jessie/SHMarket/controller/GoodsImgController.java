@@ -51,6 +51,8 @@ public class GoodsImgController
     @Autowired
     JwtTokenUtil jwtTokenUtil;
 
+    //删除图片和更改图片没写，只能建议有这个需要的。。。把商品删除重新上传吧
+    //实在是懒得写
     @PostMapping(value = "/upload", produces = "text/html;charset=UTF-8")
     public String UploadById(@RequestParam("gid") int gid, @RequestParam("uploads") MultipartFile[] uploads, HttpServletRequest request) throws Exception
     {

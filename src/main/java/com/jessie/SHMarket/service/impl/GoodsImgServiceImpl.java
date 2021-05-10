@@ -28,6 +28,12 @@ public class GoodsImgServiceImpl implements GoodsImgService
     }
 
     @Override
+    public void deleteImg(String name,int uid)
+    {
+        goodsImgDAO.deleteImg(name,uid);
+    }
+
+    @Override
     public List<GoodsImg> getGoodsImg(int gid)
     {
         return goodsImgDAO.getGoodsImg(gid);

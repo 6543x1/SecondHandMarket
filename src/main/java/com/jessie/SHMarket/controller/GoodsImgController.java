@@ -225,4 +225,12 @@ public class GoodsImgController
         }
         return JSONArray.toJSONString(files);
     }
+    @PostMapping(value = "/delete", produces = "text/html;charset=UTF-8")
+    public String delete(HttpServletRequest request, String imgName) throws IOException
+    {
+        goodsImgService.deleteImg(imgName, jwtTokenUtil.getUidFromToken(request.getHeader("token")));
+        return JSON.toJSONString(Result.success("删除成功"));
+        //只是为了让这个项目的功能性稍微完整一些，因为前段并没有使用到这个功能
+        //删除的话，倒是可以直接连着uid一起判断就好了
+    }
 }

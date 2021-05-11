@@ -20,7 +20,7 @@ public interface GoodsDAO
     @Select("select * from goods where gid=#{gid}")
     Goods getGoods(int gid);
 
-    @Update("update goods set description=#{description},label=#{label},brand=#{brand},quality=#{quality},price=#{price},contact=#{contact} where gid=#{gid} ")
+    @Update("update goods set description=#{description},label=#{label},brand=#{brand},quality=#{quality},price=#{price},contact=#{contact},status=0 where gid=#{gid} ")
     void editGoods(Goods goods);
 
     @Select("select uid from goods where  gid=#{gid}")

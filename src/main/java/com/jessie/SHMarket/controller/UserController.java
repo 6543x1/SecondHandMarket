@@ -157,7 +157,7 @@ public class UserController
             byte[] bytes = FileUtils.readFileToByteArray(new File(path));
             //向输出流写文件
             //写之前设置响应流以附件的形式打开返回值,这样可以保证前边打开文件出错时异常可以返回给前台
-            response.setHeader("Content-Disposition", "attachment;filename=" + uid + "_Img");
+            response.setHeader("Content-Disposition", "attachment;filename=" + uid + "_Img"+path.substring(path.lastIndexOf(".")+1));
             outputStream.write(bytes);
             outputStream.flush();
             outputStream.close();
@@ -364,35 +364,7 @@ public class UserController
         }
     }
 
-    @PostMapping(value = "/confirmFzu", produces = "application/json;charset=UTF-8")
-    public String confirmFzu(String No, String Password, HttpServletRequest request) throws Exception
-    {
-        String token = request.getHeader("token");
-        int uid = jwtTokenUtil.getUidFromToken(token);
-        if (No == null || Password == null)
-        {
-            return JSON.toJSONString(Result.error("账号或密码为空"));
-        }
-        if (userIdentityService.userIdentity(uid) != null)
-        {
-            return JSON.toJSONString(Result.error("该号已经认证"));
-        }
-        if (userIdentityService.userIdentity(No) != null)
-        {
-            return JSON.toJSONString(Result.error("该学号被认证"));
-        }
-        if (testJWCHPost(No, Password))
-        {
-            UserIdentity userIdentity = new UserIdentity();
-            userIdentity.setUid(uid);
-            userIdentity.setNo(No);
-            userIdentity.setSchool("福州大学");
-            permissionService.setUserPermission(uid, 2);//授予普通用户的权限
-            userIdentityService.saveIdentity(userIdentity);
-            return JSON.toJSONString(Result.success("认证成功"));
-        }
-        return JSON.toJSONString(Result.error("认证失败,检查学号密码是否正确"));
-    }
+
 
     @PostMapping(value = "/isIdentified", produces = "application/json;charset=UTF-8")
     public String isIdentified(HttpServletRequest request) throws Exception

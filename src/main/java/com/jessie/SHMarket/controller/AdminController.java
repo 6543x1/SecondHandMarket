@@ -177,7 +177,7 @@ public class AdminController
     {
         goodsReportService.finishReport(reportId, result, LocalDateTime.now());
         mailService.newMessage("你的举报进度有更新", userService.getMailAddr(goodsReportService.getReporter(reportId)), result);
-        redisUtil.saveUserMessage(goodsReportService.getReporter(reportId), new UserMessage("你的举报#{" + reportId + "}结果处理如下" + result, "举报消息", LocalDateTime.now()));
+        redisUtil.saveUserMessage(goodsReportService.getReporter(reportId), new UserMessage("你对#{" +goodsReportService.getReport(reportId).getTarget() + "}的举报的结果处理如下" + result, "举报消息", LocalDateTime.now()));
         return JSON.toJSONString(Result.success("处理成功"));
     }
 

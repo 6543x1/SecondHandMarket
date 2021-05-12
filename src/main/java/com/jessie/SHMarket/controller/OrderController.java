@@ -180,9 +180,9 @@ public class OrderController
     }
     @PreAuthorize("hasAnyAuthority('admin','user')")
     @PostMapping(value = "/comment", produces = "application/json;charset=UTF-8")
-    public String commentOrder(int oid, @RequestParam(defaultValue = "好评") String type, String comment, ModelMap modelMap)
+    public String commentOrder(int oid, @RequestParam(defaultValue = "好评") String type, String comment,HttpServletRequest request)
     {
-        int uid = (int) modelMap.get("uid");
+        int uid = jwtTokenUtil.getUidFromToken(request.getHeader("token"));
         Order order = orderService.getOrder(oid);
         if (order == null || (order.getSeller() != uid && order.getBuyer() != uid))
             return JSON.toJSONString(Result.error("订单不存在"));
@@ -213,11 +213,12 @@ public class OrderController
                     userService.plusStatus(order.getSeller(), 5);
                     userService.updateAdditionalScore(uid, 5);
                 }
-
             } else if ("差评".equals(type))
             {
                 userService.plusStatus(order.getSeller(), -5);
+
             }
+            redisUtil.saveUserMessage(order.getSeller(),new UserMessage("你的订单" + "#{" + order.getOid() + "}" + "收到一个"+type, "订单消息", LocalDateTime.now()));
         } else
         {
             orderComment.setS_Comment(comment);
@@ -230,9 +231,17 @@ public class OrderController
             {
                 userService.plusStatus(order.getBuyer(), -5);
             }
+            redisUtil.saveUserMessage(order.getBuyer(),new UserMessage("你的订单" + "#{" + order.getOid() + "}" + "收到一个好评", "订单消息", LocalDateTime.now()));
         }
-        redisUtil.saveUserMessage(order.getSeller(), new UserMessage("你的订单" + "#{" + order.getOid() + "}" + "收到了新评价", "订单消息", LocalDateTime.now()));
         return JSON.toJSONString(Result.success("评价成功"));
+    }
+    @PreAuthorize("hasAnyAuthority('admin','user')")
+    @PostMapping(value = "/getComments", produces = "text/plain;charset=UTF-8")
+    public String getComments(int oid,HttpServletRequest request)
+    {
+        int uid = jwtTokenUtil.getUidFromToken(request.getHeader("token"));
+        OrderComment orderComment=orderCommentService.getOrder(oid);
+        return JSON.toJSONString(orderComment);
     }
 
 }

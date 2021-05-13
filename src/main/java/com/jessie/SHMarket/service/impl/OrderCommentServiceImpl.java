@@ -2,6 +2,7 @@ package com.jessie.SHMarket.service.impl;
 
 import com.jessie.SHMarket.dao.Order_commentDAO;
 import com.jessie.SHMarket.entity.OrderComment;
+import com.jessie.SHMarket.entity.OrderComment_Extended;
 import com.jessie.SHMarket.service.OrderCommentService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -17,7 +18,7 @@ public class OrderCommentServiceImpl implements OrderCommentService
     @Override
     public OrderComment getOrder(int oid)
     {
-        return order_commentDAO.getOrder(oid);
+        return order_commentDAO.getAnOrderComment(oid);
     }
 
     @Override
@@ -36,5 +37,17 @@ public class OrderCommentServiceImpl implements OrderCommentService
     public void updateSellerComment(OrderComment orderComment)
     {
         order_commentDAO.updateSellerComment(orderComment);
+    }
+
+    @Override
+    public List<OrderComment_Extended> getUserReceivedComments(int uid)
+    {
+        return order_commentDAO.getUserReceivedComments(uid);
+    }
+
+    @Override
+    public List<OrderComment_Extended> getUserSentComments(int uid)
+    {
+        return order_commentDAO.getUserSentComments(uid);
     }
 }

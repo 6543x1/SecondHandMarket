@@ -14,7 +14,6 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
-import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.bind.support.SessionStatus;
 import org.springframework.web.multipart.MultipartFile;
@@ -30,7 +29,6 @@ import java.util.HashMap;
 import java.util.List;
 
 import static com.jessie.SHMarket.service.impl.MailServiceImpl.getRandomString;
-import static com.jessie.SHMarket.service.impl.UserServiceImpl.testJWCHPost;
 
 @RestController
 @RequestMapping("/user")
@@ -170,14 +168,14 @@ public class UserController
     }
 
     @RequestMapping(value = "/loginSuccess", produces = "text/plain;charset=UTF-8")
-    public String isLogin(Model model) throws Exception
+    public String isLogin() throws Exception
     {
         String username = getCurrentUsername();
         if (username == null) return JSON.toJSONString(Result.error("服务器内部错误", 500));
-        model.addAttribute("username", username);
+        //model.addAttribute("username", username);
         User user = userService.getUser(username);
         user.setPassword("加密也不给你看");
-        model.addAttribute("uid", user.getUid());
+        //model.addAttribute("uid", user.getUid());
         String userInfo = JSON.toJSONString(user);
         System.out.println(userInfo);
         Result result = Result.success("loginSuccess", user);

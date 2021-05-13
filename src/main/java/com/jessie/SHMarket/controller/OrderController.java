@@ -9,7 +9,6 @@ import com.jessie.SHMarket.utils.JwtTokenUtil;
 import com.jessie.SHMarket.utils.RedisUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.ui.ModelMap;
 import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpServletRequest;
@@ -38,13 +37,25 @@ public class OrderController
 
     @PreAuthorize("hasAnyAuthority('admin','user')")
     @PostMapping(value = "/buy", produces = "application/json;charset=UTF-8")
-    public String newOrder(Order order, ModelMap modelMap) throws Exception
+    public String newOrder(int gid, String buyCode, HttpServletRequest request) throws Exception
     {
+        Order order = new Order();
+        order.setGid(gid);
+        if (!redisUtil.exists("Goods_BuyCode|" + gid))
+        {
+            return JSON.toJSONString(Result.error("卖家尚未生成商品购买码或是已经过期了"));
+        } else
+        {
+            if (!buyCode.equals(redisUtil.get("Goods_BuyCode|" + gid)))
+            {
+                return JSON.toJSONString(Result.error("购买码不对"));
+            }
+        }
         if (goodsService.getGoods(order.getGid()).getStatus() != 1)
         {
-            return JSON.toJSONString(Result.error("该商品不存在或已被下单"));
+            return JSON.toJSONString(Result.error("该商品不存在"));
         }
-        order.setBuyer((Integer) modelMap.get("uid"));
+        order.setBuyer(jwtTokenUtil.getUidFromToken(request.getHeader("token")));
         order.setSeller(goodsService.getGoods(order.getGid()).getUid());
         if (order.getBuyer() == order.getSeller())
         {
@@ -111,7 +122,7 @@ public class OrderController
     }
 
     @PreAuthorize("hasAnyAuthority('admin')")
-    @PostMapping("/deleteOrderTruly")
+    @PostMapping(value = "/deleteOrderTruly", produces = "text/plain;charset=UTF-8")
     public String deleteOrderTruly(int oid) throws Exception
     {
         orderService.deleteOrder(oid);
@@ -119,7 +130,7 @@ public class OrderController
     }
 
     @PreAuthorize("hasAnyAuthority('admin','user')")
-    @PostMapping("/deleteOrder")
+    @PostMapping(value = "/deleteOrder", produces = "text/plain;charset=UTF-8")
     public String deleteOrder(int oid, HttpServletRequest request) throws Exception
     {
         int uid = jwtTokenUtil.getUidFromToken(request.getHeader("token"));
@@ -238,13 +249,22 @@ public class OrderController
         }
         return JSON.toJSONString(Result.success("评价成功"));
     }
+
     @PreAuthorize("hasAnyAuthority('admin','user')")
     @PostMapping(value = "/getComments", produces = "text/plain;charset=UTF-8")
-    public String getComments(int oid,HttpServletRequest request)
+    public String getComments(int oid, HttpServletRequest request)
     {
         int uid = jwtTokenUtil.getUidFromToken(request.getHeader("token"));
-        OrderComment orderComment=orderCommentService.getOrder(oid);
+        OrderComment orderComment = orderCommentService.getOrder(oid);
         return JSON.toJSONString(orderComment);
+    }
+
+    @GetMapping(value = "/getUserReceivedComments")
+    public PageInfo getUserReceivedComments(@RequestParam(value = "pageNum", defaultValue = "1") int pageNum, int uid) throws Exception
+    {
+        PageHelper.startPage(pageNum, 10);
+        List<OrderComment_Extended> list = orderCommentService.getUserReceivedComments(uid);
+        return new PageInfo<>(list);
     }
 
 }

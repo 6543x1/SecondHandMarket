@@ -272,7 +272,16 @@ public class GoodsController
     public Goods getAnGood(int gid, HttpServletRequest request)
     {
         Goods goods = goodsService.getGoods(gid);
-            return goods;
+        return goods;
+    }
+
+    @PreAuthorize("hasAnyAuthority('admin','user')")
+    @PostMapping(value = "/setBuyCode", produces = "application/json;charset=UTF-8")
+    public String setBuyCode(int gid, String buyCode, HttpServletRequest request)
+    {
+        int uid = jwtTokenUtil.getUidFromToken(request.getHeader("token"));
+        redisUtil.set("Goods_BuyCode|" + gid, gid, 30 * 60);
+        return JSON.toJSONString("success");
     }
 
 }

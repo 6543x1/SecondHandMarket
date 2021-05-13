@@ -43,7 +43,7 @@ public interface OrderDAO
 
     @Select("select oid,gid from user_order where buyer=#{uid} order by generatedTime desc")
     @Results(id = "OrderWithGoods", value = {
-            @Result(property = "order", column = "oid", one = @One(select = "com.jessie.SHMarket.dao.OrderDAO.getOrder", fetchType = FetchType.EAGER)),
+            @Result(property = "order", column = "oid", one = @One(select = "com.jessie.SHMarket.dao.OrderDAO.getAnOrderComment", fetchType = FetchType.EAGER)),
             @Result(property = "goods", column = "gid", one = @One(select = "com.jessie.SHMarket.dao.GoodsDAO.getGoods", fetchType = FetchType.EAGER))
     })
     List<OrderWithGoods> getBuyerOrderAndGoods(int uid);

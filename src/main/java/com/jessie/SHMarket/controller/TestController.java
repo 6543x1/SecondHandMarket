@@ -8,7 +8,6 @@ import com.jessie.SHMarket.service.*;
 import com.jessie.SHMarket.utils.RedisUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
-import org.springframework.ui.Model;
 import org.springframework.util.DigestUtils;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -57,8 +56,9 @@ public class TestController
         //userService.saveUser(theUser);
         return objectMapper.writeValueAsString("success");
     }
+
     @PostMapping(value = "/Login", produces = "text/html;charset=UTF-8")
-    public String login(User user, Model model, HttpServletRequest request, HttpServletResponse response, HttpSession session) throws Exception
+    public String login(User user, HttpServletRequest request, HttpServletResponse response, HttpSession session) throws Exception
     {
         System.out.println("已经取得用户数据，正在向数据库查询。。。");
         System.out.println(user.toString());
@@ -67,7 +67,7 @@ public class TestController
         try
         {
             thisUser = userService.getUser(user.getUsername());
-            if (bCryptPasswordEncoder.matches(user.getPassword(),thisUser.getPassword()))
+            if (bCryptPasswordEncoder.matches(user.getPassword(), thisUser.getPassword()))
             {//写哈希好像有点麻烦，用MD5会比较简单，会牺牲一些安全性但是加了盐后难度都比较高吧
                 // ;
                 if (session != null)

@@ -6,13 +6,13 @@ import java.io.Serializable;
 public class OrderComment implements Serializable
 {
 
-    private int oid;
-    private int buyer;
-    private int seller;
-    private String b_Comment;
-    private String b_Type;
-    private String s_Comment;
-    private String s_Type;
+    protected int oid;
+    protected int buyer;
+    protected int seller;
+    protected String b_Comment;
+    protected String b_Type;
+    protected String s_Comment;
+    protected String s_Type;
 
     public OrderComment()
     {

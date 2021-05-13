@@ -22,7 +22,7 @@ import java.util.Map;
 import java.util.Scanner;
 
 @RunWith(SpringRunner.class)
-@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
+//@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 public class TestDownloadYzm
 {
     private static Map<String, String> cookies = null;

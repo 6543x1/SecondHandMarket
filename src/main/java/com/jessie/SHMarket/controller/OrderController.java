@@ -104,6 +104,9 @@ public class OrderController
         }
         theOrder.setDoneTime(LocalDateTime.now());
         orderService.doneOrder(theOrder);
+        if(theOrder.getStatus()==11){
+            redisUtil.delete("orderGenerated|"+oid);
+        }
         return JSON.toJSONString(Result.success(("订单状态更新"), orderService.getOrder(oid)));
     }
 

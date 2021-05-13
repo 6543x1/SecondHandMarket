@@ -10,6 +10,7 @@ import com.jessie.SHMarket.utils.JwtTokenUtil;
 import com.jessie.SHMarket.utils.RedisUtil;
 import org.apache.commons.io.FileUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -38,8 +39,9 @@ public class UserIdentifyController
     PermissionService permissionService;
     @Autowired
     JwcIdentifyUtil jwcIdentifyUtil;
+
     @PostMapping(value = "/confirmFzu", produces = "application/json;charset=UTF-8")
-    public String confirmFzu(String No, String Password, String VerifyCode,HttpServletRequest request) throws Exception
+    public String confirmFzu(String No, String Password, String VerifyCode, HttpServletRequest request) throws Exception
     {
         String token = request.getHeader("token");
         int uid = jwtTokenUtil.getUidFromToken(token);
@@ -53,20 +55,24 @@ public class UserIdentifyController
         }
         if (userIdentityService.userIdentity(No) != null)
         {
-            System.out.println(JSON.toJSONString(Result.error("该学号被认证")));
+            return JSON.toJSONString(Result.error("该学号已经被认证过了"));
         }
-        if(redisUtil.exists("User_Jwc_Cookie|"+uid)){
-            if(jwcIdentifyUtil.login(No,Password,VerifyCode,redisUtil.get("User_Jwc_Cookie|"+uid,Map.class))){
+        if (redisUtil.exists("User_Jwc_Cookie|" + uid))
+        {
+            if (jwcIdentifyUtil.login(No, Password, VerifyCode, redisUtil.get("User_Jwc_Cookie|" + uid, Map.class)))
+            {
                 UserIdentity userIdentity = new UserIdentity();
                 userIdentity.setUid(uid);
                 userIdentity.setNo(No);
                 userIdentity.setSchool("福州大学");
-                //permissionService.setUserPermission(uid, 2);//授予普通用户的权限
-                //userIdentityService.saveIdentity(userIdentity);
+                permissionService.setUserPermission(uid, 2);//授予普通用户的权限
+                userIdentityService.saveIdentity(userIdentity);
+                File file = new File("/usr/tomcat/VerifyCode/" + uid + "/imageYzm.png");
+                file.delete();
                 return JSON.toJSONString(Result.success("认证成功"));
             }
-        }
-        else{
+        } else
+        {
             return JSON.toJSONString(Result.error("请重新获取一下验证码"));
         }
 
@@ -77,10 +83,13 @@ public class UserIdentifyController
     {
         String token = request.getHeader("token");
         int uid = jwtTokenUtil.getUidFromToken(token);
-        jwcIdentifyUtil.getVerifyCode("D:/usr/tomcat/Img",uid);
-        File file=new File("D:/usr/tomcat/Img/imageYzm.png");
-        if(!file.exists()){
-            return JSON.toJSONString(Result.error("服务器发生了异常",500));
+        String path = "/usr/tomcat/VerifyCode/" + uid;
+        jwcIdentifyUtil.getVerifyCode(path, uid);
+        File file = new File(path + "/imageYzm.png");
+
+        if (!file.exists())
+        {
+            return JSON.toJSONString(Result.error("服务器发生了异常", 500));
         }
         try
         {

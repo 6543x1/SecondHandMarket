@@ -17,7 +17,8 @@ public class JwcIdentifyUtil
 
     public void getVerifyCode(String path,int uid) throws Exception {
         Map<String, String> cookies = null;
-        String urlLogin = "https://jwcjwxt2.fzu.edu.cn:82/plus/verifycode.asp";
+        String urlLogin = "https://jwcjwxt2.fzu.edu.cn:82/plus/verifycode.asp?n="+Math.random();
+        System.out.println(urlLogin);
         Connection connect = Jsoup.connect(urlLogin);
         // 伪造请求头
         connect.header("Accept", "image/webp,*/*").header("Accept-Encoding",
@@ -39,13 +40,22 @@ public class JwcIdentifyUtil
         //拿到cookie了！！！
         // 获取响应体
         String body = res.body();
-        System.out.println(body);
+        //System.out.println(body);
         byte[] bytes= res.bodyAsBytes();
-        File file=new File(path+"/imageYzm.png");
+        File file=new File(path);
         if(!file.exists()){
-            file.createNewFile();
+            file.mkdirs();
         }
-        FileOutputStream fileOutputStream=new FileOutputStream(file);
+        File file2=new File(path+"/imageYzm.png");
+        if(!file2.exists()){
+            file2.createNewFile();
+        }
+        else if(file2.exists()){
+            file2.delete();
+            file2.createNewFile();
+        }
+
+        FileOutputStream fileOutputStream=new FileOutputStream(file2);
         fileOutputStream.write(bytes);
     }
     public boolean login(String No,String Password,String VerifyCode,Map<String, String> cookies) throws Exception {
@@ -71,7 +81,11 @@ public class JwcIdentifyUtil
         // 获取返回的cookie
         int StatusCode= res.statusCode();
         System.out.println(StatusCode);
-        if(StatusCode==302) return true;
-        else return false;
+        if(StatusCode==302){
+            return true;}
+        else
+        {
+            return false;
+        }
     }
 }

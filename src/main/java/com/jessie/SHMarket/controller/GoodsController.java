@@ -280,8 +280,8 @@ public class GoodsController
     public String setBuyCode(int gid, String buyCode, HttpServletRequest request)
     {
         int uid = jwtTokenUtil.getUidFromToken(request.getHeader("token"));
-        redisUtil.set("Goods_BuyCode|" + gid, gid, 30 * 60);
-        return JSON.toJSONString("success");
+        redisUtil.set("Goods_BuyCode|" + gid, buyCode, 30 * 60);
+        return JSON.toJSONString(Result.success("设置成功"));
     }
 
 }

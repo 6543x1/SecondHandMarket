@@ -66,7 +66,7 @@ public class OrderController
             return JSON.toJSONString(Result.error("卖家被封号了不能下单", 403));
         }
         order.setGeneratedTime(LocalDateTime.now());
-        order.setStatus(0);
+        order.setStatus(11);//别说了...反正都有购买码了，直接完成好吗
         orderService.newOrder(order);
         goodsService.updateGoods(2, order.getGid());
         OrderComment orderComment = new OrderComment();
@@ -75,8 +75,8 @@ public class OrderController
         orderComment.setOid(order.getOid());
         orderCommentService.newOrderComment(orderComment);
         redisUtil.set("orderGenerated|" + order.getOid(), "7 DAYS", 60 * 60 * 24 * 7);
-        redisUtil.saveUserMessage(order.getSeller(), new UserMessage("你的一个商品" + "#{" + order.getGid() + "}" + "已经被拍下了", "商品消息", LocalDateTime.now()));
-        mailService.sendNewOrder(userService.getMailAddr(order.getSeller()), "你的一个商品被拍下了，快去看看吧");
+        redisUtil.saveUserMessage(order.getSeller(), new UserMessage("你的一个商品" + "#{" + order.getGid() + "}" + "已经被买了", "商品消息", LocalDateTime.now()));
+        mailService.sendNewOrder(userService.getMailAddr(order.getSeller()), "你的一个商品被买了，快去看看吧");
         return JSON.toJSONString(Result.success("下单成功", order));
     }
 

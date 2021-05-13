@@ -272,11 +272,7 @@ public class GoodsController
     public Goods getAnGood(int gid, HttpServletRequest request)
     {
         Goods goods = goodsService.getGoods(gid);
-        if (goods.getStatus() != 1) return null;
-        else
-        {
             return goods;
-        }
     }
 
 }

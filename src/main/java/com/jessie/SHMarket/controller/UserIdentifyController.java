@@ -23,8 +23,8 @@ import java.io.File;
 import java.io.IOException;
 import java.util.Map;
 
-import static com.jessie.SHMarket.service.impl.UserServiceImpl.testJWCHPost;
-
+//用于新版教务处认证，经过测试可行
+//旧版已经删去
 @RestController
 @RequestMapping("/user")
 public class UserIdentifyController

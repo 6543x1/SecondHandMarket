@@ -77,8 +77,8 @@ public class TestDownloadYzm
     }
     @Test
     public static void login() throws Exception {
-        String No="031902410";
-        String Password="123456cnm";
+        String No = "031902000";
+        String Password = "123456233";
         String urlLogin = "https://jwcjwxt2.fzu.edu.cn:82/logincheck.asp";
         Connection connect = Jsoup.connect(urlLogin);
         connect.timeout(5 * 100000).followRedirects(false);

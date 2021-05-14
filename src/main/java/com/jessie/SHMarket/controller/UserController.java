@@ -190,19 +190,13 @@ public class UserController
         return JSON.toJSONString(user);
     }
 
-    @RequestMapping(value = "/loginError", produces = "text/plain;charset=UTF-8")
-    public String loginError() throws Exception
-    {
-        return JSON.toJSONString(Result.error("密码不匹配或是已被封号", 400));
-    }
-
     @PostMapping(value = "/Register", produces = "text/html;charset=UTF-8")
     public String register(User user) throws Exception
     {
         //说回来要是有人破解了链接给我服务器扔冲蝗核弹咋办 springboot有防御措施吗...
         if (user == null) return JSON.toJSONString(Result.error("无数据"));
         System.out.println(user);
-        if (user.getUsername().length() >= 15 || user.getPassword().length() >= 30)
+        if (user.getUsername().length() >= 20 || user.getPassword().length() >= 30)
         {
             return JSON.toJSONString(Result.error("想扔内存核弹？"));
         }

@@ -28,7 +28,7 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter
     @Autowired
     private JwtRequestFilter jwtRequestFilter;
     @Autowired
-    private UserDetailServiceImpl theUserDetailService;//和上面重了 改一下
+    private UserDetailServiceImpl theUserDetailService;
     @Autowired
     private MyAccessDeniedHandler myAccessDeniedHandler;
 
@@ -107,36 +107,6 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter
                 .logoutSuccessUrl("/user/Logout")
         ;
 
-//                .csrfTokenRepository(new CookieCsrfTokenRepository())
-//                //.csrfTokenRepository(CookieCsrfTokenRepository.withHttpOnlyFalse())//httpOnly怎么开？？
-//                .ignoringAntMatchers("/user/isLogin")
-//                .ignoringAntMatchers("/user/Register")
-//                .ignoringAntMatchers("/user/login")
-//                .ignoringAntMatchers("/user/editPwByMail")
-        ;
-        // disable page caching
-//        http
-//                .headers()
-//                .frameOptions().sameOrigin()  // required to set for H2 else H2 Console will be blank.
-//                .cacheControl();
-        //上面有anyrequest了，下面不能再弄
-//        http
-//                .authorizeRequests()
-//                .antMatchers("/admin/**").hasAnyAuthority("admin")
-//                //基于url的权限管理
-//                .anyRequest().permitAll()
-//                .and()
-//                .formLogin()
-//                    .loginProcessingUrl("/user/login")
-//                    .successForwardUrl("/user/loginSuccess")
-//                    .failureForwardUrl("/user/loginError")
-//                .and()
-//                .logout()
-//                    .logoutSuccessUrl("/user/loginOut")
-//                .and()
-//                .exceptionHandling()
-//                    .accessDeniedPage("/user/noAccess")
-        ;
     }
 
     @Override

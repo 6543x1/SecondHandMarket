@@ -50,9 +50,9 @@ public class GoodsImgController
     UserService userService;
     @Autowired
     JwtTokenUtil jwtTokenUtil;
-
+    //前端表示发zip和base64太麻烦了，然后就让我直接发回去，前端获取图片数量后用循环请求，我....
     //删除图片和更改图片没写，只能建议有这个需要的。。。把商品删除重新上传吧
-    //实在是懒得写
+    //实在是懒得写（最后还是写了删除
     @PostMapping(value = "/upload", produces = "text/html;charset=UTF-8")
     public String UploadById(@RequestParam("gid") int gid, @RequestParam("uploads") MultipartFile[] uploads, HttpServletRequest request) throws Exception
     {
